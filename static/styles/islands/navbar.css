@@ -1,0 +1,74 @@
+.nav {
+  position: absolute;
+  width: 100%;
+  height: var(--header-height-desktop);
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: var(--bg-colour-secondary);
+}
+
+.guest-nav {
+  .nav-list{
+    display: inline-flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+  
+    *{ transition: all 150ms; }
+  
+    .settingIcon{
+      fill: hsl(0, 0%, 20%);
+      stroke: none;
+      transition: transform 500ms ease;
+      cursor: pointer;
+    
+      &:hover{
+        fill: hsl(0, 0%, 30%);
+        transform: rotate(90deg);
+      }
+    }
+  
+    li{
+      margin: 0 12px;
+  
+      & a{
+        text-decoration: none;
+        color: var(--text-color);
+        font-weight: var(--weight-normal);
+      }
+    }
+  
+    .nav-btn-link a{
+      color: var(--text-color);
+      &:hover{ color: var(--primary-colour); }
+    }
+  
+    .nav-btn-log{
+      padding: 6px 20px;
+      margin: 0 8px;
+      border-radius: 40px;
+      cursor: pointer;
+  
+      &.btn-login{ background-color: var(--primary-colour); margin-left: 12px; &:hover { background-color: var(--primary-colour-hover); } }
+      &.btn-signup{ background-color: hsl(0, 0%, 20%); &:hover { background-color: hsl(0, 0%, 15%); } }
+  
+      &:hover{ color: var(--text-color-hover); }
+    }
+  }
+}
+
+.user-nav {
+  .nav-list{
+    display: inline-flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+
+    * { text-decoration: none; color: aliceblue; }
+  }
+}
