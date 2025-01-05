@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+  padding: 0;
+  font: var(--weight-normal) normal 1em Poppins, serif;
+  color: var(--text-color);
+  text-decoration: none;
+  list-style: none;
+}
+
+:root {
+  --primary-hue: 11;
+  --primary-saturation: 80%;
+  --primary-lightness: 50%;
+
+  --primary-colour: hsl(var(--primary-hue), var(--primary-saturation), var(--primary-lightness));
+  --primary-colour-hover: hsl(var(--primary-hue), var(--primary-saturation), 40%);
+  --primary-colour-active: hsl(var(--primary-hue), var(--primary-saturation), 30%);
+  --primary-colour-highlight: hsl(var(--primary-hue), var(--primary-saturation), 55%);
+  --primary-colour-highlight-active: hsl(var(--primary-hue), var(--primary-saturation), 60%);
+
+  --weight-light: 300;
+  --weight-normal: 400;
+  --weight-bold: 600;
+  --weight-black: 800;
+
+  --font-small: 0.8em;
+
+  --border-radius: 16px;
+  --border-radius-small: 8px;
+  --border-radius-smaller: 4px;
+
+  --easing: cubic-bezier(.0,.8,.5,2);
+
+  --bg-colour-primary: hsl(0, 0%, 10%);
+  --bg-colour-secondary: hsl(0, 0%, 5%);
+  --bg-colour-tertiary: hsl(0, 0%, 15%);
+
+  --btn-colour: hsl(0, 0%, 10%);
+  --btn-hover: hsl(0, 0%, 20%);
+  --btn-active: hsl(0, 0%, 25%);
+
+  --text-color: hsl(0, 0%, 100%);
+  --text-color-hover: hsl(0, 0%, 80%);
+  --text-color-dark: hsl(0, 0%, 50%);
+
+  --header-height-desktop: 64px;
+}
+
+body{
+  background-color: var(--bg-colour-primary);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  fill: none;
+}
+
+.body{
+  position: absolute;
+  min-height: calc(100% - var(--header-height-desktop));
+  width: 100%;
+  top: var(--header-height-desktop);
+  color: var(--text-color);
+}
+
+h1{
+  font-weight: var(--weight-black);
+  font-size: 2.5em;
+}
+
+h2, h3, h4, h5, h6{
+  font-weight: var(--weight-bold);
+}
+
+h2{ font-size: 2em; }
+h3{ font-size: 1.75em; }
+h4{ font-size: 1.5em; }
+h5{ font-size: 1.25em; }
+h6{ font-size: 1em; }
+
+
+/* Scrollbar width */
+::-webkit-scrollbar {
+  width: 6px; /* Vertical scrollbar width */
+  height: 6px; /* Horizontal scrollbar height */
+}
+
+/* Track (the background) */
+::-webkit-scrollbar-track {
+  background: #0000; /* Light grey background */
+  border-radius: 10px;
+}
+
+/* Handle (the draggable part) */
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #2f2f2f;
+}

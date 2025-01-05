@@ -6,14 +6,28 @@ import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
 import * as $_layout from "./routes/_layout.tsx";
 import * as $about_index from "./routes/about/index.tsx";
-import * as $api_joke from "./routes/api/joke.ts";
+import * as $api_projects from "./routes/api/projects.ts";
+import * as $dashboard_index from "./routes/dashboard/index.tsx";
+import * as $explore_layout from "./routes/explore/_layout.tsx";
+import * as $explore_index from "./routes/explore/index.tsx";
+import * as $explore_people_index from "./routes/explore/people/index.tsx";
+import * as $explore_posts_index from "./routes/explore/posts/index.tsx";
+import * as $explore_projects_index from "./routes/explore/projects/index.tsx";
 import * as $greet_name_ from "./routes/greet/[name].tsx";
 import * as $index from "./routes/index.tsx";
+import * as $messages_index from "./routes/messages/index.tsx";
+import * as $partials_explore_project from "./routes/partials/explore/project.tsx";
+import * as $projects_index from "./routes/projects/index.tsx";
+import * as $projects_project_id_ from "./routes/projects/project/[id].tsx";
 import * as $user_layout from "./routes/user/_layout.tsx";
 import * as $user_login from "./routes/user/login.tsx";
 import * as $user_signup from "./routes/user/signup.tsx";
 import * as $Counter from "./islands/Counter.tsx";
+import * as $ExploreFilter from "./islands/ExploreFilter.tsx";
 import * as $Navbar from "./islands/Navbar.tsx";
+import * as $ProjectDetails from "./islands/ProjectDetails.tsx";
+import * as $Test from "./islands/Test.tsx";
+import * as $explore_ProjectList from "./islands/explore/ProjectList.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
@@ -22,16 +36,30 @@ const manifest = {
     "./routes/_app.tsx": $_app,
     "./routes/_layout.tsx": $_layout,
     "./routes/about/index.tsx": $about_index,
-    "./routes/api/joke.ts": $api_joke,
+    "./routes/api/projects.ts": $api_projects,
+    "./routes/dashboard/index.tsx": $dashboard_index,
+    "./routes/explore/_layout.tsx": $explore_layout,
+    "./routes/explore/index.tsx": $explore_index,
+    "./routes/explore/people/index.tsx": $explore_people_index,
+    "./routes/explore/posts/index.tsx": $explore_posts_index,
+    "./routes/explore/projects/index.tsx": $explore_projects_index,
     "./routes/greet/[name].tsx": $greet_name_,
     "./routes/index.tsx": $index,
+    "./routes/messages/index.tsx": $messages_index,
+    "./routes/partials/explore/project.tsx": $partials_explore_project,
+    "./routes/projects/index.tsx": $projects_index,
+    "./routes/projects/project/[id].tsx": $projects_project_id_,
     "./routes/user/_layout.tsx": $user_layout,
     "./routes/user/login.tsx": $user_login,
     "./routes/user/signup.tsx": $user_signup,
   },
   islands: {
     "./islands/Counter.tsx": $Counter,
+    "./islands/ExploreFilter.tsx": $ExploreFilter,
     "./islands/Navbar.tsx": $Navbar,
+    "./islands/ProjectDetails.tsx": $ProjectDetails,
+    "./islands/Test.tsx": $Test,
+    "./islands/explore/ProjectList.tsx": $explore_ProjectList,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;
