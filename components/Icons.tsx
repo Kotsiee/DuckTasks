@@ -56,6 +56,7 @@ interface AIconProps{
   onClick?: (state: boolean) => void;
   onHover?: () => void;
   offHover?: () => void;
+  initalState?: boolean;
   className?: string
 }
 
@@ -66,6 +67,7 @@ export default class AIcon extends Component<AIconProps, AIconState>{
   pRefs: (SVGPathElement)[] = [];
   svg = createRef<SVGSVGElement>();
   started: boolean = false
+  initPaths: string[] = []
 
   constructor (props: any){
     super(props);
@@ -86,15 +88,29 @@ export default class AIcon extends Component<AIconProps, AIconState>{
       });
     }
 
-    if(!this.started) this.svg?.current?.classList.add("active")
+    if (!this.started) this.svg?.current?.classList.add("active")
     else this.svg?.current?.classList.remove("active")
   }
 
   click(){
-    if(this.state.endPaths) this.startClick()
+    if (this.state.endPaths) this.startClick()
     if (this.state.onClick) this.state.onClick(this.started);
     
     this.started = !this.started;
+  }
+
+  override componentDidMount(): void {
+    this.started = this.state.initalState ? this.state.initalState : false
+
+    if (this.started) {
+      this.svg?.current?.classList.add("active")
+      this.pRefs.forEach((path, index) => {
+        path.setAttribute('d', `${this.state.endPaths?.[index] ? this.state.endPaths[index]  : this.state.startPaths[index]}`)
+      })
+    }
+    else{
+      this.svg?.current?.classList.remove("active")
+    }
   }
 
   onMouseEnter = () => { if (this.state.onHover) this.state.onHover(); };

@@ -16,13 +16,14 @@ export async function fetchTasksByProject(id: string): Promise<Task[] | null> {
     const tasks: Task[] = await Promise.all(
         data.map(async (d) => {
             const attachments: string[] = d.attachments;
+            
             return {
                 id: d.id,
                 projectId: d.project_id,
                 title: d.title,
                 description: d.description,
                 status: d.status,
-                attachments: attachments,
+                attachments: null,
                 meta: d.meta,
                 createdAt: DateTime.fromISO(d.created_at)
             };

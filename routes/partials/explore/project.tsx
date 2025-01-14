@@ -1,7 +1,7 @@
 import { defineRoute } from "$fresh/server.ts";
 import { Partial } from "$fresh/runtime.ts";
 import { fetchProjectByID } from "../../../lib/api/projectApi.ts";
-import { ProjectDetails } from "../../../islands/ProjectDetails.tsx";
+import { ProjectDetails } from "../../../islands/explore/ProjectDetails.tsx";
 
 
 export default defineRoute(async (req, _ctx) => {

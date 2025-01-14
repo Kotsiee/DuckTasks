@@ -42,7 +42,7 @@
   --bg-colour-secondary: hsl(0, 0%, 5%);
   --bg-colour-tertiary: hsl(0, 0%, 15%);
 
-  --btn-colour: hsl(0, 0%, 10%);
+  --btn-colour: hsl(0, 0%, 15%);
   --btn-hover: hsl(0, 0%, 20%);
   --btn-active: hsl(0, 0%, 25%);
 
@@ -51,6 +51,9 @@
   --text-color-dark: hsl(0, 0%, 50%);
 
   --header-height-desktop: 64px;
+  --header-side-width-desktop: 72px;
+
+  --width-transition: 400ms;
 }
 
 body{
@@ -70,6 +73,10 @@ body{
   width: 100%;
   top: var(--header-height-desktop);
   color: var(--text-color);
+
+  transition: all var(--width-transition);
+  width: calc(100% - var(--header-side-width-desktop));
+  left: var(--header-side-width-desktop);
 }
 
 h1{

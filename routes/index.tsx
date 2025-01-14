@@ -21,7 +21,7 @@ export const handler = {
 export default function Home(props: PageProps<User[]>) {
   return (
     <div class="home">
-      <img src={props.data[0].profilePicture as string}/>
+      <h1>Home</h1>
     </div>
   );
 }

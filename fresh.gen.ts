@@ -5,7 +5,11 @@
 import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
 import * as $_layout from "./routes/_layout.tsx";
+import * as $_middleware from "./routes/_middleware.ts";
 import * as $about_index from "./routes/about/index.tsx";
+import * as $api_chats_chatId_chat from "./routes/api/chats/[chatId]/chat.ts";
+import * as $api_chats_chatId_messages from "./routes/api/chats/[chatId]/messages.ts";
+import * as $api_chats_id_ from "./routes/api/chats/[id].ts";
 import * as $api_projects from "./routes/api/projects.ts";
 import * as $dashboard_index from "./routes/dashboard/index.tsx";
 import * as $explore_layout from "./routes/explore/_layout.tsx";
@@ -15,8 +19,11 @@ import * as $explore_posts_index from "./routes/explore/posts/index.tsx";
 import * as $explore_projects_index from "./routes/explore/projects/index.tsx";
 import * as $greet_name_ from "./routes/greet/[name].tsx";
 import * as $index from "./routes/index.tsx";
+import * as $messages_layout from "./routes/messages/_layout.tsx";
+import * as $messages_c_id_ from "./routes/messages/c/[id].tsx";
 import * as $messages_index from "./routes/messages/index.tsx";
 import * as $partials_explore_project from "./routes/partials/explore/project.tsx";
+import * as $partials_messages_id_ from "./routes/partials/messages/[id].tsx";
 import * as $projects_index from "./routes/projects/index.tsx";
 import * as $projects_project_id_ from "./routes/projects/project/[id].tsx";
 import * as $user_layout from "./routes/user/_layout.tsx";
@@ -25,8 +32,10 @@ import * as $user_signup from "./routes/user/signup.tsx";
 import * as $Counter from "./islands/Counter.tsx";
 import * as $ExploreFilter from "./islands/ExploreFilter.tsx";
 import * as $Navbar from "./islands/Navbar.tsx";
-import * as $ProjectDetails from "./islands/ProjectDetails.tsx";
 import * as $Test from "./islands/Test.tsx";
+import * as $chat_ChatMessages from "./islands/chat/ChatMessages.tsx";
+import * as $chat_ChatsList from "./islands/chat/ChatsList.tsx";
+import * as $explore_ProjectDetails from "./islands/explore/ProjectDetails.tsx";
 import * as $explore_ProjectList from "./islands/explore/ProjectList.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
@@ -35,7 +44,11 @@ const manifest = {
     "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
     "./routes/_layout.tsx": $_layout,
+    "./routes/_middleware.ts": $_middleware,
     "./routes/about/index.tsx": $about_index,
+    "./routes/api/chats/[chatId]/chat.ts": $api_chats_chatId_chat,
+    "./routes/api/chats/[chatId]/messages.ts": $api_chats_chatId_messages,
+    "./routes/api/chats/[id].ts": $api_chats_id_,
     "./routes/api/projects.ts": $api_projects,
     "./routes/dashboard/index.tsx": $dashboard_index,
     "./routes/explore/_layout.tsx": $explore_layout,
@@ -45,8 +58,11 @@ const manifest = {
     "./routes/explore/projects/index.tsx": $explore_projects_index,
     "./routes/greet/[name].tsx": $greet_name_,
     "./routes/index.tsx": $index,
+    "./routes/messages/_layout.tsx": $messages_layout,
+    "./routes/messages/c/[id].tsx": $messages_c_id_,
     "./routes/messages/index.tsx": $messages_index,
     "./routes/partials/explore/project.tsx": $partials_explore_project,
+    "./routes/partials/messages/[id].tsx": $partials_messages_id_,
     "./routes/projects/index.tsx": $projects_index,
     "./routes/projects/project/[id].tsx": $projects_project_id_,
     "./routes/user/_layout.tsx": $user_layout,
@@ -57,8 +73,10 @@ const manifest = {
     "./islands/Counter.tsx": $Counter,
     "./islands/ExploreFilter.tsx": $ExploreFilter,
     "./islands/Navbar.tsx": $Navbar,
-    "./islands/ProjectDetails.tsx": $ProjectDetails,
     "./islands/Test.tsx": $Test,
+    "./islands/chat/ChatMessages.tsx": $chat_ChatMessages,
+    "./islands/chat/ChatsList.tsx": $chat_ChatsList,
+    "./islands/explore/ProjectDetails.tsx": $explore_ProjectDetails,
     "./islands/explore/ProjectList.tsx": $explore_ProjectList,
   },
   baseUrl: import.meta.url,

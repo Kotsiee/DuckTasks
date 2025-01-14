@@ -1,7 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { defineRoute } from "$fresh/server.ts";
 import { Partial } from "$fresh/runtime.ts";
-import { ProjectDetails } from "../../../islands/ProjectDetails.tsx";
+import { ProjectDetails } from "../../../islands/explore/ProjectDetails.tsx";
 import ProjectList from "../../../islands/explore/ProjectList.tsx";
 import ExploreFilters from "../../../islands/ExploreFilter.tsx";
 import { fetchProjectByID } from "../../../lib/api/projectApi.ts";
@@ -67,7 +67,7 @@ export default defineRoute(async (req, _ctx) => {
         <link rel="stylesheet" href="/styles/pages/explore/projects.css" />
 
         <div class="explore-projects-items">
-          <ProjectList filters={filters} />
+          <ProjectList filters={filters}/>
         </div>
 
         <div class="explore-projects-details">

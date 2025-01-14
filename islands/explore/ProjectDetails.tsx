@@ -1,7 +1,7 @@
 import { useSignal } from 'https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js';
 import { JSX } from "preact/jsx-runtime";
 import { DateTime } from "https://esm.sh/luxon@3.5.0";
-import { Project } from "../lib/types/index.ts";
+import { Project } from "../../lib/types/index.ts";
 import { useEffect, useState } from "preact/hooks";
 
 export function ProjectDetails( props: JSX.HTMLAttributes<HTMLDivElement> & { project: Project | null }) {

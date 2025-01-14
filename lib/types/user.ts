@@ -1,4 +1,5 @@
 import { DateTime } from "https://esm.sh/luxon@3.5.0";
+import { Logo, Privacy, Theme } from "./index.ts";
 
 export interface User {
     id: string;
@@ -6,27 +7,27 @@ export interface User {
     username: string;
     firstName: string;
     lastName: string;
-    profilePicture: string | null;
-    meta?: UserMeta;
+    profilePicture: Logo | null;
+    meta: UserMeta | null;
     createdAt: DateTime;
 }
 
 export interface UserMeta {
-    settings: UserSettings;
+    settings?: UserSettings;
     history?: UserHistory;
     preferences?: UserPeferences;
 }
 
 export interface UserSettings {
-    theme: theme;
-    privacy: privacy;
-    language: language;
+    theme?: Theme;
+    privacy?: Privacy;
+    language?: Language;
     /*
         Allow for users to navigate with just their keyboard. 
         K - binding (ie., open menu)
         T - keys (ie., alt + m)
     */
-    keyBindings: Record<string, string[] | string>[];
+    keyBindings?: Record<string, string[] | string>[];
 }
 
 export interface UserPeferences {
@@ -42,18 +43,7 @@ export interface UserHistory {
     posts?: string[];          // List of previously clicked post ids
 }
 
-export enum theme{
-    dark,
-    light,
-    system
-}
-
-export enum privacy{
-    public,
-    private
-}
-
-export enum language {
+export enum Language {
     Afrikaans,
     Arabic,
     Bengali,

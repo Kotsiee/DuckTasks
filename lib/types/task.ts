@@ -1,23 +1,24 @@
 import { DateTime } from "https://esm.sh/luxon@3.5.0";
+import { Files, Project } from "./index.ts";
 
 export interface Task {
     id: string;
-    projectId?: string;
+    project?: Project | Task;
     title?: string;
     description?: string;
     status?: string;
     meta?: TaskMeta;
-    attachments?: string[];
+    attachments?: Files[] | null;
     createdAt?: DateTime;
 }
 
-export interface TaskMeta {
+export type TaskMeta = {
     timeline: TaskTimeline;
     priority: string;
-    subTasks: Task[];
+    subTasks: Task[]; // Shoud also be a pointer
 }
 
-export interface TaskTimeline {
+export type TaskTimeline = {
     startDate: DateTime;
     endDate: DateTime;
 }

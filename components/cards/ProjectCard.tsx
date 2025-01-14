@@ -1,8 +1,8 @@
 import { JSX } from "preact/jsx-runtime";
-import { Project } from "../lib/types/index.ts";
+import { Project } from "../../lib/types/index.ts";
 import { DateTime } from "https://esm.sh/luxon@3.5.0";
-import AIcon from "./Icons.tsx";
-import { Icons } from "./Icons.tsx";
+import AIcon from "../Icons.tsx";
+import { Icons } from "../Icons.tsx";
 
 export function ProjectCard(props: JSX.HTMLAttributes<HTMLDivElement> & { project: Project, query: string }) {
   const calculateTimeDifference = () => {

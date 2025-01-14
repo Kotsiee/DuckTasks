@@ -2,7 +2,7 @@ import { Handlers } from "$fresh/server.ts";
 import { fetchProjectByID, fetchProjects } from "../../lib/api/projectApi.ts";
 
 export const handler: Handlers = {
-    async GET(req, ctx) {
+    async GET(req, _ctx) {
         const url = new URL(req.url)
         const id = url.searchParams.get("id");
 

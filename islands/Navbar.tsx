@@ -3,9 +3,14 @@ import AIcon, { Icons } from "../components/Icons.tsx";
 import { useRef } from 'preact/hooks';
 
 export default function NavBar({pageProps}: { pageProps: PageProps }) {
+    const navbarState = localStorage.getItem('navbarState') == "open";
+
     const currentRoute = pageProps.route.split("/");
     const refs = useRef<{ [key: string]: AIcon | null }>({});
     const menuRef = useRef<HTMLDivElement>(null);
+
+    const userID = "1434da34-9820-4eac-b7f1-124a78af6d8c";
+    localStorage.setItem('user', userID)
 
     const handleClick = (key: string) => {
         refs.current[key]?.click();
@@ -14,6 +19,11 @@ export default function NavBar({pageProps}: { pageProps: PageProps }) {
     return (
         <div>
             <link rel="stylesheet" href="/styles/islands/navbar.css" />
+            <style>
+            {`
+                :root { --header-side-width-desktop: ${navbarState ? 300 : 72 }px; }
+            `}
+            </style>
 
             <nav>
                 <div class="nav user-nav">
@@ -21,10 +31,21 @@ export default function NavBar({pageProps}: { pageProps: PageProps }) {
                         <AIcon 
                         ref={(el) => (refs.current['r'] = el)} 
                         className="navMenuIcon"
+                        size={16}
                         startPaths={Icons.Menu} endPaths={Icons.X}
+                        initalState={navbarState}
                         onClick={(state) => {
-                            if (state) menuRef.current?.classList.add("hidden");
-                            else menuRef.current?.classList.remove("hidden");
+                            if (state) {
+                                menuRef.current?.classList.add("hidden");
+                                document.documentElement.style.setProperty('--header-side-width-desktop', '76px');
+                                localStorage.setItem('navbarState', 'closed')
+                            }
+                            else{
+                                menuRef.current?.classList.remove("hidden");
+                                document.documentElement.style.setProperty('--header-side-width-desktop', '300px');
+                                localStorage.setItem('navbarState', 'open')
+                            }
+
                         }}
                         />
                         <a href="/">DuckTasks</a>
@@ -46,7 +67,30 @@ export default function NavBar({pageProps}: { pageProps: PageProps }) {
                     </div>
                 </div>
 
-                <div class="user-nav-popout">
+                <div class="user-nav-side">
+                    <div class="container">
+                        <ul>
+                            <li class={`${(currentRoute[1] == "dashboard" ? "active" : "")} nav-btn-link`}>
+                                <a href="/dashboard"><AIcon startPaths={Icons.Filter}/></a>
+                                <label>Dashboard</label>
+                            </li>
+                            <li class={`${(currentRoute[1] == "messages" ? "active" : "")} nav-btn-link`}>
+                                <a href="/messages"><AIcon startPaths={Icons.Filter}/></a>
+                                <label>Messages</label>
+                            </li>
+                            <li class={`${(currentRoute[1] == "explore" ? "active" : "")} nav-btn-link`}>
+                                <a href="/explore"><AIcon startPaths={Icons.Filter}/></a>
+                                <label>Explore</label>
+                            </li>
+                            <li class={`${(currentRoute[1] == "projects" ? "active" : "")} nav-btn-link`}>
+                                <a href="/projects"><AIcon startPaths={Icons.Filter}/></a>
+                                <label>Projects</label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                {/* <div class="user-nav-popout">
                     <div ref={menuRef} class="container hidden">
                         <ul>
                             <li class={`${(currentRoute[1] == "dashboard" ? "active" : "")} nav-btn-link`}>
@@ -105,7 +149,7 @@ export default function NavBar({pageProps}: { pageProps: PageProps }) {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> */}
             
                 <div class="search-popout">
 
