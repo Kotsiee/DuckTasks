@@ -2,6 +2,10 @@
 import { animate } from "https://esm.sh/motion@11.15.0";
 import { Component, createRef } from "preact";
 
+const calcCirc = (posX: number, posY: number, r: number) => {
+  return `M ${posX} ${posY} m ${r} 0 a ${r} ${r} 0 1 0 -${r * 2} 0 a ${r} ${r} 0 1 0 ${r * 2} 0`
+}
+
 export const Icons: Record<string, string[]> = {
   Home: [
     'M3 9L12 2L21 9V20C21 20.55 20.55 21 20 21H4C3.45 21 3 20.55 3 20V9Z',
@@ -13,6 +17,10 @@ export const Icons: Record<string, string[]> = {
   ],
   Settings: [
     'M 12 1 L 22 6 L 22 18 L 12 23 L 2 18 L 2 6 L 12 1 Z M 12 8 A 4 4 0 1 1 12 16 A 4 4 0 1 1 12 8 Z'
+  ],
+  Plus: [
+    'M 12 2 L 12 22 Z',
+    'M 2 12 L 22 12 Z'
   ],
   X: [
     'M 20 20 L 4 4 Z',
@@ -45,6 +53,17 @@ export const Icons: Record<string, string[]> = {
   ],
   Save: [
     'M 2 2 L 22 2 L 22 22 L 12 16 L 2 22 Z'
+  ],
+  Hr: [
+    'M 2 12 L 22 12'
+  ],
+  Vr: [
+    'M 12 2 L 12 22'
+  ],
+  DotMenu: [
+    calcCirc(12, 4, 2),
+    calcCirc(12, 12, 2),
+    calcCirc(12, 20, 2)
   ]
 };
 
@@ -142,6 +161,8 @@ export default class AIcon extends Component<AIconProps, AIconState>{
               <path
                 key={index}
                 ref={(el) => el && (this.pRefs[index] = el)}
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 d={d}
               />
             )

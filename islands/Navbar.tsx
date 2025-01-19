@@ -1,9 +1,11 @@
 import { PageProps } from "$fresh/server.ts";
+import { useSignal } from "https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js";
 import AIcon, { Icons } from "../components/Icons.tsx";
 import { useRef } from 'preact/hooks';
 
 export default function NavBar({pageProps}: { pageProps: PageProps }) {
     const navbarState = localStorage.getItem('navbarState') == "open";
+    const openState = useSignal<boolean>(navbarState);
 
     const currentRoute = pageProps.route.split("/");
     const refs = useRef<{ [key: string]: AIcon | null }>({});
@@ -21,7 +23,7 @@ export default function NavBar({pageProps}: { pageProps: PageProps }) {
             <link rel="stylesheet" href="/styles/islands/navbar.css" />
             <style>
             {`
-                :root { --header-side-width-desktop: ${navbarState ? 300 : 72 }px; }
+                :root { --header-side-width-desktop: ${navbarState ? 300 : 60 }px; }
             `}
             </style>
 
@@ -46,6 +48,7 @@ export default function NavBar({pageProps}: { pageProps: PageProps }) {
                                 localStorage.setItem('navbarState', 'open')
                             }
 
+                            openState.value = !state
                         }}
                         />
                         <a href="/">DuckTasks</a>
@@ -72,19 +75,19 @@ export default function NavBar({pageProps}: { pageProps: PageProps }) {
                         <ul>
                             <li class={`${(currentRoute[1] == "dashboard" ? "active" : "")} nav-btn-link`}>
                                 <a href="/dashboard"><AIcon startPaths={Icons.Filter}/></a>
-                                <label>Dashboard</label>
+                                <label hidden={openState.value}>Dashboard</label>
                             </li>
                             <li class={`${(currentRoute[1] == "messages" ? "active" : "")} nav-btn-link`}>
                                 <a href="/messages"><AIcon startPaths={Icons.Filter}/></a>
-                                <label>Messages</label>
+                                <label hidden={openState.value}>Messages</label>
                             </li>
                             <li class={`${(currentRoute[1] == "explore" ? "active" : "")} nav-btn-link`}>
                                 <a href="/explore"><AIcon startPaths={Icons.Filter}/></a>
-                                <label>Explore</label>
+                                <label hidden={openState.value}>Explore</label>
                             </li>
                             <li class={`${(currentRoute[1] == "projects" ? "active" : "")} nav-btn-link`}>
                                 <a href="/projects"><AIcon startPaths={Icons.Filter}/></a>
-                                <label>Projects</label>
+                                <label hidden={openState.value}>Projects</label>
                             </li>
                         </ul>
                     </div>

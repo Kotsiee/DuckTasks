@@ -38,9 +38,9 @@
 
   --easing: cubic-bezier(.0,.8,.5,2);
 
-  --bg-colour-primary: hsl(0, 0%, 10%);
-  --bg-colour-secondary: hsl(0, 0%, 5%);
-  --bg-colour-tertiary: hsl(0, 0%, 15%);
+  --bg-colour-primary: hsl(0, 0%, 7%);
+  --bg-colour-secondary: hsl(0, 0%, 0%);
+  --bg-colour-tertiary: hsl(0, 0%, 10%);
 
   --btn-colour: hsl(0, 0%, 15%);
   --btn-hover: hsl(0, 0%, 20%);
@@ -50,8 +50,7 @@
   --text-color-hover: hsl(0, 0%, 80%);
   --text-color-dark: hsl(0, 0%, 50%);
 
-  --header-height-desktop: 64px;
-  --header-side-width-desktop: 72px;
+  --header-height-desktop: 48px;
 
   --width-transition: 400ms;
 }
