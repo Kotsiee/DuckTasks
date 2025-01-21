@@ -1,4 +1,4 @@
-import { supabase } from "../supabaseClient.ts";
+import { supabase } from "../supabase/client.ts";
 import { ChatRoles, ChatType, Roles } from "../types/index.ts";
 import { fetchChatByID } from "./chatApi.ts";
 import { fetchUserByID } from "./userApi.ts";

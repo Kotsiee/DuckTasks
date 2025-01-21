@@ -1,14 +1,18 @@
 // deno-lint-ignore-file no-explicit-any
 import { useEffect, useState } from "preact/hooks";
-import { supabase } from "../../lib/supabaseClient.ts";
-import { Chat, Messages } from "../../lib/types/index.ts";
+import { supabase } from "../../lib/supabase/client.ts";
+import { Chat, Messages, User } from "../../lib/types/index.ts";
 import { PageProps } from '$fresh/server.ts';
 import AIcon, { Icons } from "../../components/Icons.tsx";
+import { useSignal } from 'https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js';
+import { DateTime } from "https://esm.sh/luxon@3.5.0";
 
 export default function ChatMessages(props: { pageProps: PageProps }) {
     const [messages, setMessages] = useState<Messages[]>([]);
     const [chat, setChat] = useState<Chat>();
-    const user = localStorage.getItem('user')
+    const userId = localStorage.getItem('user');
+    const [user, setUser] = useState<User>();
+    const inputMessage = useSignal<string>('');
 
     useEffect(() => {
         let channel: any;
@@ -16,7 +20,10 @@ export default function ChatMessages(props: { pageProps: PageProps }) {
         async function fetchMessages() {
             const res = await fetch(`/api/chats/${props.pageProps.params.id}/chat`);
             const data = await res.json();
-            setChat(data.json);
+            const thisChat: Chat = data.json
+            setChat(thisChat);
+            setUser(thisChat?.users?.find(u => u.user?.id == userId)?.user!)
+            
 
             const res1 = await fetch(`/api/chats/${props.pageProps.params.id}/messages`);
             const data1 = await res1.json();
@@ -50,16 +57,43 @@ export default function ChatMessages(props: { pageProps: PageProps }) {
         };
     }, []);
 
+    const enterMessage = () => {
+        const newMessage: Messages = {
+            content: inputMessage.value,
+            sentAt: DateTime.now(),
+            chat: chat!,
+            user: null
+        }
+
+        setMessages((prevMessages) => [...prevMessages, newMessage as Messages]);
+        inputMessage.value = ''
+
+    }
+
+    const getChatInfo = (type: 'photo' | 'name') => {
+        if (!chat)
+            return '';
+
+        const otherUser = chat.users!.find(u => u.user?.id != userId)?.user!; 
+
+        switch (type) {
+            case 'photo':
+                return chat.photo != null ? chat.photo.url : otherUser?.profilePicture?.url;
+            case 'name': 
+                return chat.name ? chat.name : otherUser?.username;
+        }
+    }
+
     return (
         <div class="chat-messages-container">
-            {
-                chat ? (
+            { chat ? (
+                <div>
                     <div class="chat-header">
                         <div class="chat-header-container">
                             <div class="left">
-                                <img class="chat-photo" src={ chat.photo != null ? chat.photo.url : chat.users?.find(u => u.user?.id != user)?.user?.profilePicture?.url || "https://images.unsplash.com/photo-1485893086445-ed75865251e0?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" }/>
+                                <img class="chat-photo" src={ getChatInfo('photo') }/>
                                 <div>
-                                    <h6>{ chat.name ? chat.name : chat.users?.find(u => u.user?.id != user)?.user?.username }</h6>
+                                    <h6>{ getChatInfo('name') }</h6>
                                     <p class="isTyping">is typing...</p>
                                 </div>
                             </div>
@@ -73,37 +107,54 @@ export default function ChatMessages(props: { pageProps: PageProps }) {
                             </div>
                         </div>
                     </div>
-                ) : (<></>)
-            }
+                
 
-            <div class="chat-input">
-                <div class="chat-input-text">
-                    <AIcon startPaths={Icons.Plus} className="additional-btn" size={20}/>
+                    <div class="chat-input">
+                        <div class="chat-input-text">
+                            <AIcon startPaths={Icons.Plus} className="additional-btn" size={20}/>
 
-                    <div class="chat-input-additional" hidden>
-                        <ul>
-                            <li>File</li>
-                            <li>Poll</li>
-                            <li>Project</li>
-                            <li>Person</li>
-                            <li>Post</li>
-                        </ul>
+                            <div class="chat-input-additional" hidden>
+                                <ul>
+                                    <li>File</li>
+                                    <li>Poll</li>
+                                    <li>Project</li>
+                                    <li>Person</li>
+                                    <li>Post</li>
+                                </ul>
+                            </div>
+
+                            <input 
+                            class="message-input" 
+                            type="text" 
+                            placeholder="Type your message..."
+                            value={inputMessage.value}
+                            onInput={(e) => inputMessage.value = (e.target as HTMLInputElement).value}
+                            onKeyUp={(key) => { if (key.key == 'Enter' && inputMessage.value) enterMessage() }}
+                            />
+
+                            <button 
+                            class="message-sent"
+                            onClick={() => { if (inputMessage.value) enterMessage() }}
+                            ><AIcon startPaths={Icons.Send} className="send-icon"/></button>
+                        </div>
                     </div>
 
-                    <input class="message-input" type="text" placeholder="Type your message..."/>
+                    <div class="chat-messages-area">
+                        <div class="empty">
+                            <div><img class="chat-messages-photo" src={ getChatInfo('photo') }/></div>
+                            <div><p>&#9432; Chat Info</p></div>
+                        </div>
+                        <ul class="chat-messages-list">
+                            {messages?.map((msg, index) => {
+                                return ( <ChatMessage msg={msg} userId={user!.id}/> );
+                            })}
+                        </ul>
+                    </div>
+                    
                 </div>
-            </div>
-
-            <div class="chat-messages-area">
-                <div class="empty">
-
-                </div>
-                <ul class="chat-messages-list">
-                    {messages?.map((msg, index) => {
-                        return ( <ChatMessage msg={msg} userId={user!}/> );
-                    })}
-                </ul>
-            </div>
+            )
+            : (<></>)
+        }
         </div>
     );
 }
@@ -122,14 +173,16 @@ const ChatMessage = (props: {msg: Messages, userId: string}) => {
                 }
 
                 <div class="message">
-                    <div class={`${!isSender }`} hidden={!isSender}>
-                        <AIcon startPaths={Icons.Filter}/>
-                        <AIcon startPaths={Icons.DotMenu}/>
+                    <div class={`options ${isSender ? 'active' : ''}`}>
+                        <AIcon className="option-icon reply" startPaths={Icons.Filter}/>
+                        <AIcon className="option-icon menu" startPaths={Icons.DotMenu}/>
                     </div>
+
                     <p class="content">{ props.msg.content }</p>
-                    <div class="options options-right" hidden={isSender}>
-                        <AIcon startPaths={Icons.DotMenu}/>
-                        <AIcon startPaths={Icons.Filter}/>
+
+                    <div class={`options ${!isSender ? 'active' : ''}`}>
+                        <AIcon className="option-icon menu" startPaths={Icons.DotMenu}/>
+                        <AIcon className="option-icon reply" startPaths={Icons.Filter}/>
                     </div>
                 </div>
             </div>

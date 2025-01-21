@@ -1,5 +1,5 @@
 import { DateTime } from "https://esm.sh/luxon@3.5.0";
-import { supabase } from "../supabaseClient.ts";
+import { supabase } from "../supabase/client.ts";
 import { Task } from "../types/index.ts";
 
 export async function fetchTasksByProject(id: string): Promise<Task[] | null> {

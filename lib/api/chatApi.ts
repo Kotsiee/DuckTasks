@@ -1,5 +1,5 @@
 // deno-lint-ignore-file no-explicit-any
-import { supabase } from "../supabaseClient.ts";
+import { supabase } from "../supabase/client.ts";
 import { Chat, ChatRoles } from "../types/index.ts";
 import { ChatType } from "../types/types.ts";
 import { DateTime } from "https://esm.sh/luxon@3.5.0";

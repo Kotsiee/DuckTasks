@@ -179,7 +179,20 @@
             padding-bottom: calc(var(--footer-hight));
 
             .empty{
-                height: 200px;
+                margin-top: 80px;
+                div {
+                    display: flex;
+                    justify-content: center;
+                }
+
+                .chat-messages-photo{
+                    height: 80px;
+                    width: 80px;
+                    border-radius: 80px;
+                    object-fit: cover;
+                }
+
+
             }
 
             .chat-messages-list {
@@ -206,6 +219,7 @@
 
                     .message {
                         display: flex;
+                        align-items: center;
 
                         .content {
                             margin-top: 4px;
@@ -217,8 +231,28 @@
                         }
 
                         .options {
-                            display: flex;
-                            justify-content: center;
+                            display: none;
+
+                            &.active{
+                                justify-content: center;
+                                align-items: center;
+                                margin: 0 4px;
+
+                                .option-icon{
+                                    cursor: pointer;
+                                    padding: 4px;
+                                    border-radius: var(--border-radius-smaller);
+
+                                    &.menu {
+                                        fill: var(--text-color);
+                                        stroke: none;
+                                    }
+
+                                    &:hover {
+                                        background-color: var(--btn-colour);
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -230,6 +264,12 @@
                     }
 
                     &:has(.isSender) { justify-content: flex-end; }
+
+                    &:hover {
+                        .options.active{
+                            display: flex;
+                        }
+                    }
                 }
             }
         }
@@ -278,6 +318,26 @@
                     font-weight: 350;
                     font-size: 0.9em;
                     padding-right: 20px;
+                }
+
+                .message-sent {
+                    margin-right: 4px;
+                    background-color: var(--primary-colour);
+                    border: none;
+                    outline: none;
+                    border-radius: 40px;
+                    padding: 4px 12px;
+                    cursor: pointer;
+
+                    .send-icon {
+                        padding: 2px;
+                        fill: var(--text-color);
+                        stroke: none;
+                    }
+
+                    &:hover {
+                        background-color: var(--primary-colour-hover);       
+                    }
                 }
             }
 
@@ -330,13 +390,13 @@
                 height: 3px;
                 width: 20px;
                 margin: 0 4px;
-                background-color: var(--btn-colour);
+                background-color: var(--btn-hover);
                 cursor: pointer;
                 border-radius: 4px;
 
                 &:hover { 
                     height: 4px;
-                    background-color: var(--btn-hover);
+                    background-color: var(--btn-active);
                  }
             }
 

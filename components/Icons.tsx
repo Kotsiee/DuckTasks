@@ -27,7 +27,7 @@ export const Icons: Record<string, string[]> = {
     'M 20 4 L 4 20 Z'
   ],
   Tick: [
-    'M 2 12 L 10 22 L 22 2'
+    'M 2 12 L 10 20 L 22 2'
   ],
   Menu: [
     'M 1 6 L 23 6 Z',
@@ -64,6 +64,9 @@ export const Icons: Record<string, string[]> = {
     calcCirc(12, 4, 2),
     calcCirc(12, 12, 2),
     calcCirc(12, 20, 2)
+  ],
+  Send: [
+    'M 2 2 L 22 12 L 2 22 L 6 14 L 14 12 L 6 10 Z'
   ]
 };
 

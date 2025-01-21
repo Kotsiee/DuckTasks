@@ -1,4 +1,4 @@
-import { supabase } from "../supabaseClient.ts";
+import { supabase } from "../supabase/client.ts";
 import { Project } from "../types/project.ts";
 import { DateTime } from "https://esm.sh/luxon@3.5.0";
 import { fetchOrganisationByID } from "./organisationApi.ts";

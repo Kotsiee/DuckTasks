@@ -1,4 +1,4 @@
-import { supabase } from "../../lib/supabaseClient.ts";
+import { supabase } from "../supabase/client.ts";
 
 export async function getFileUrl(filePath: string) {
     const { data } = await supabase

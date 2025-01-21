@@ -1,4 +1,4 @@
-import { supabase } from "../supabaseClient.ts";
+import { supabase } from "../supabase/client.ts";
 import { ChatType, Messages } from "../types/index.ts";
 import { DateTime } from "https://esm.sh/luxon@3.5.0";
 import { fetchChatRole } from "./chatRolesApi.ts";

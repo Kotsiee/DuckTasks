@@ -1,5 +1,21 @@
 import { DateTime } from "https://esm.sh/luxon@3.5.0";
 import { Logo, Privacy, Theme } from "./index.ts";
+import superjson from "https://esm.sh/superjson@2.2.2";
+
+export const fetchUser = (): User | null => {
+    const user = localStorage.getItem('user');
+    // console.log(user)
+    if (!user) {
+        return null; // No user found
+    }
+
+    try {
+        return JSON.parse(user) as User;
+    } catch (error) {
+        console.log(error)
+        return null;
+    }
+};
 
 export interface User {
     id: string;
