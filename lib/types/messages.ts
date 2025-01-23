@@ -4,7 +4,7 @@ import { Chat, ChatRoles, Files } from "./index.ts";
 export interface Messages {
     id?: string;
     user: ChatRoles | null;
-    chat: Chat | null;
+    chat?: Chat | null;
     content: string;
     attachments?: Files[];
     sentAt: DateTime;

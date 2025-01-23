@@ -10,7 +10,7 @@ export enum Roles {
     owner,
     co_owner,
     manager,
-    memeber,
+    member,
     viewer
 }
 

@@ -3,11 +3,9 @@ import { Skeleton } from "../../components/Skeletons.tsx";
 import { Chat } from "../../lib/types/index.ts";
 import ChatCard from "../../components/cards/ChatCard.tsx";
 
-export default function ChatList() {
+export default function ChatList({userID}: {userID: string}) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const userID = "1434da34-9820-4eac-b7f1-124a78af6d8c";
 
   useEffect(() => {
     fetch(`/api/chats/${userID}`)
@@ -28,7 +26,7 @@ export default function ChatList() {
         )
         : (
           <ul>
-            {chats.map((chat, index) => {
+            {chats.map((chat, _index) => {
               return ( <ChatCard chat={chat} viewerID={userID} /> );
             })}
           </ul>

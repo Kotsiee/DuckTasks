@@ -1,31 +1,37 @@
 // deno-lint-ignore-file no-explicit-any
 import { useEffect, useState } from "preact/hooks";
-import { supabase } from "../../lib/supabase/client.ts";
-import { Chat, Messages, User } from "../../lib/types/index.ts";
+import { Chat, ChatRoles, Messages, User } from "../../lib/types/index.ts";
 import { PageProps } from '$fresh/server.ts';
 import AIcon, { Icons } from "../../components/Icons.tsx";
 import { useSignal } from 'https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js';
 import { DateTime } from "https://esm.sh/luxon@3.5.0";
+import { createClient, RealtimePostgresChangesPayload } from "https://esm.sh/@supabase/supabase-js@2.47.10";
+import { fetchChatByID } from "../../lib/api/chatApi.ts";
 
-export default function ChatMessages(props: { pageProps: PageProps }) {
+interface IChatMessages {
+    supabaseUrl: string;
+    supabaseAnonKey: string;
+    user: User;
+}
+
+export default function ChatMessages(props: { pageProps: PageProps, p: IChatMessages }) {
     const [messages, setMessages] = useState<Messages[]>([]);
     const [chat, setChat] = useState<Chat>();
-    const userId = localStorage.getItem('user');
-    const [user, setUser] = useState<User>();
+    const user = props.p.user;
     const inputMessage = useSignal<string>('');
+
+    const supabase = createClient(props.p.supabaseUrl, props.p.supabaseAnonKey);
 
     useEffect(() => {
         let channel: any;
-
         async function fetchMessages() {
+
             const res = await fetch(`/api/chats/${props.pageProps.params.id}/chat`);
             const data = await res.json();
             const thisChat: Chat = data.json
             setChat(thisChat);
-            setUser(thisChat?.users?.find(u => u.user?.id == userId)?.user!)
-            
 
-            const res1 = await fetch(`/api/chats/${props.pageProps.params.id}/messages`);
+            const res1 = await fetch(`/api/chats/${props.pageProps.params.id}/messages`, {method: 'GET'});
             const data1 = await res1.json();
             setMessages(data1.json);
 
@@ -34,9 +40,13 @@ export default function ChatMessages(props: { pageProps: PageProps }) {
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'messages' },
-                (payload) => {
-                    console.log('New Message:', payload.new);
-                    setMessages((prevMessages) => [...prevMessages, payload.new as Messages]);
+                async (payload) => {
+
+                    const res = await fetch(`/api/chats/${props.pageProps.params.id}/chat`);
+                    const data = await res.json();
+                    const c: Chat = data.json
+
+                    handleSubscription(payload, c)
 
                     setTimeout(() => {
                         globalThis.scrollTo({ top: globalThis.innerHeight, behavior: 'smooth' });
@@ -44,6 +54,14 @@ export default function ChatMessages(props: { pageProps: PageProps }) {
                 }
             )
             .subscribe();
+
+            // Handle reconnect attempts
+            channel.on("close", () => {
+                console.warn("Subscription closed, attempting to reconnect...");
+                setTimeout(() => {
+                supabase.channel("public:messages").subscribe();
+                }, 5000); // Reconnect after 5 seconds
+            });
 
             setTimeout(() => {
                 globalThis.scrollTo({ top: globalThis.innerHeight });
@@ -57,24 +75,67 @@ export default function ChatMessages(props: { pageProps: PageProps }) {
         };
     }, []);
 
-    const enterMessage = () => {
-        const newMessage: Messages = {
-            content: inputMessage.value,
-            sentAt: DateTime.now(),
-            chat: chat!,
-            user: null
+    const handleSubscription = (payload: RealtimePostgresChangesPayload<{ [key: string]: any }>, c: Chat) => {
+        switch (payload.eventType) {
+            case "INSERT":
+                setMessages((prevMessages) => [...prevMessages, message(payload.new as Messages, c)]);
+                break;
+            case "UPDATE":
+                setMessages((prevMessages) => prevMessages.map((message) => 
+                    message.id === (payload.new as Messages).id ? { ...message, content: (payload.new as Messages).content } : message ));
+                break;
+            case "DELETE":
+                setMessages((prevMessages) => prevMessages.filter((message) => message.id !== (payload.old as Messages).id));
+                break;
         }
 
-        setMessages((prevMessages) => [...prevMessages, newMessage as Messages]);
+    }
+
+    const message = (msg: any, c?: Chat): Messages => {
+        const cht = chat? chat : c
+
+        return ({
+            id: msg.id,
+            user: cht?.users?.find(u => u.user?.id == msg.user_id) as ChatRoles | null ||
+            msg.user || 
+            cht?.users?.find(u => u.user?.id == msg.user?.id) as ChatRoles | null,
+            chat: cht as Chat | null,
+            content: msg.content,
+            attachments: msg.attachments,
+            sentAt: msg.sentAt
+        })
+    }
+
+    const enterMessage = async () => {
+        const id = `msg-${messages.length}`
+
+        const newMessage: Messages = {
+            id: id,
+            content: inputMessage.value,
+            sentAt: DateTime.now(),
+            user: chat?.users?.find(u => u.user?.id == user.id) as ChatRoles
+        }
+
+        setMessages((prevMessages) => [...prevMessages, message(newMessage as Messages) ]);
+
         inputMessage.value = ''
 
+        const loadedMessage = await fetch(`/api/chats/${props.pageProps.params.id}/messages`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(message(newMessage as Messages)),
+        });
+        
+        if (loadedMessage) {
+            setMessages((prevMessages) => prevMessages.filter((message) => message.id !== id));
+        }
     }
 
     const getChatInfo = (type: 'photo' | 'name') => {
         if (!chat)
             return '';
 
-        const otherUser = chat.users!.find(u => u.user?.id != userId)?.user!; 
+        const otherUser = chat.users!.find(u => u.user?.id != user.id)?.user!; 
 
         switch (type) {
             case 'photo':
@@ -146,7 +207,7 @@ export default function ChatMessages(props: { pageProps: PageProps }) {
                         </div>
                         <ul class="chat-messages-list">
                             {messages?.map((msg, index) => {
-                                return ( <ChatMessage msg={msg} userId={user!.id}/> );
+                                return ( <ChatMessage msg={msg} userId={user!.id} prevUID={messages[index-1]?.user?.user?.id}/> );
                             })}
                         </ul>
                     </div>
@@ -159,13 +220,14 @@ export default function ChatMessages(props: { pageProps: PageProps }) {
     );
 }
 
-const ChatMessage = (props: {msg: Messages, userId: string}) => {
+const ChatMessage = (props: {msg: Messages, userId: string, prevUID?: string}) => {
     const isSender = props.msg.user?.user?.id == props.userId
+    console.log(props.prevUID)
 
     return(
         <li class="chat-message">
             <div class={isSender ? "isSender" : ""}>
-                { !isSender ? 
+                { !isSender && props.prevUID == props.userId ? 
                     <div class="user">
                         <img src={ props.msg.user?.user?.profilePicture?.url }/>
                         <p> { props.msg.user?.user?.username } </p>

@@ -4,7 +4,7 @@ import { fetchChatByID } from "./chatApi.ts";
 import { fetchUserByID } from "./userApi.ts";
 import { DateTime } from "https://esm.sh/luxon@3.5.0";
 
-export async function fetchChatRole(userId: string, chatId: string): Promise<ChatRoles | null> {
+export async function fetchChatRole(userId: string, chatId: string, simplify?: boolean): Promise<ChatRoles | null> {
     const { data, error } = await supabase
         .from('chat roles')
         .select('*, chat_id(*)')
@@ -13,24 +13,14 @@ export async function fetchChatRole(userId: string, chatId: string): Promise<Cha
         .single()
 
     if(error){
-        console.log("error was found :( - " + error.cause);
+        console.log("fetchChatRole: error was found :( - " + error.cause);
         return null;
     }
-
-    const chat = data.chat_id
 
     const chatRole: ChatRoles = {
         id: data.id,
         user: await fetchUserByID(data.user_id),
-        chat: {
-            id: chat.id,
-            chatType: ChatType[chat.chat_type as keyof typeof ChatType],
-            users: null,
-            name: chat.name,
-            meta: chat.meta,
-            photo: null,
-            createdAt: DateTime.fromISO(chat.created_at)
-        },
+        chat: simplify == true ? null : await fetchChatByID(data.chat_id),
         role: Roles[data.role as keyof typeof Roles],
         joinedAt: DateTime.fromISO(data.joined_at)
     }
@@ -38,47 +28,49 @@ export async function fetchChatRole(userId: string, chatId: string): Promise<Cha
     return chatRole;
 }
 
-export async function fetchChatRolesByUserID(userId: string): Promise<ChatRoles[] | null> {
+export async function fetchChatRolesByUserID(userId: string, simplify?: boolean): Promise<ChatRoles[] | null> {
     const { data, error } = await supabase
         .from('chat roles')
         .select('*')
         .eq('user_id', userId)
 
     if(error){
-        console.log("error was found :( - " + error);
+        console.log("fetchChatRolesByUserID: error was found :( - " + error);
         return null;
     }
 
-    return data;
+    const chatRoles: ChatRoles[] = await Promise.all(
+        data.map(async (d) => {
+            return {
+                id: d.id,
+                user: await fetchUserByID(d.user_id),
+                chat: simplify == true ? null : await fetchChatByID(d.chat_id),
+                role: Roles[d.role as keyof typeof Roles],
+                joinedAt: DateTime.fromISO(d.joined_at)
+            };
+        })
+    );
+
+    return chatRoles;
 }
 
-export async function fetchChatRolesByChatID(chatId: string): Promise<ChatRoles[] | null> {
+export async function fetchChatRolesByChatID(chatId: string, simplify?: boolean): Promise<ChatRoles[] | null> {
     const { data, error } = await supabase
         .from('chat roles')
         .select('*, chat_id(*)')
         .eq('chat_id', chatId)
 
     if(error){
-        console.log("error was found :( - " + error);
+        console.log("fetchChatRolesByChatID: error was found :( - " + error);
         return null;
     }
 
     const chatRoles: ChatRoles[] = await Promise.all(
         data.map(async (d) => {
-            const chat = d.chat_id
-
             return {
                 id: d.id,
                 user: await fetchUserByID(d.user_id),
-                chat: {
-                    id: chat.id,
-                    chatType: ChatType[chat.chat_type as keyof typeof ChatType],
-                    users: null,
-                    name: chat.name,
-                    meta: chat.meta,
-                    photo: null,
-                    createdAt: DateTime.fromISO(chat.created_at)
-                },
+                chat: simplify == true ? null : await fetchChatByID(d.chat_id),
                 role: Roles[d.role as keyof typeof Roles],
                 joinedAt: DateTime.fromISO(d.joined_at)
             };

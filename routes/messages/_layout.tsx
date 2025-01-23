@@ -1,8 +1,12 @@
 import { PageProps } from "$fresh/server.ts";
 import AIcon, { Icons } from "../../components/Icons.tsx";
+import { useUser } from "../../components/UserContext.tsx";
 import ChatList from "../../islands/chat/ChatsList.tsx";
+import { User } from "../../lib/types/user.ts";
 
 export default function Layout(pageProps: PageProps) {
+    const user: User | null = useUser();
+
     return (
         <div class="messages-layout" f-client-nav>
             <link rel="stylesheet" href="/styles/pages/messages.css" />
@@ -34,7 +38,7 @@ export default function Layout(pageProps: PageProps) {
                         </ul>
                     </div>
 
-                    <ChatList />
+                    <ChatList userID={user!.id}/>
                 </div>
             </div>
             <div class="chatarea"> <pageProps.Component /> </div>

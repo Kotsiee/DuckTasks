@@ -15,8 +15,8 @@ export default function LoginIsland(){
 
         data.text()
         .then(uid => {
-            console.log(uid)
-            localStorage.setItem('user', uid)
+            console.log(uid.toString())
+            localStorage.setItem('user', uid.toString())
         })
 
         globalThis.history.replaceState({}, '', '/')

@@ -2,10 +2,9 @@ import { PageProps } from "$fresh/server.ts";
 import { useSignal } from "https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js";
 import AIcon, { Icons } from "../components/Icons.tsx";
 import { useRef } from 'preact/hooks';
-import { fetchUser, User } from "../lib/types/index.ts";
+import { User } from "../lib/types/index.ts";
 
-export default function NavBar({pageProps}: { pageProps: PageProps }) {
-    const user: User | null = fetchUser()
+export default function NavBar({pageProps, user}: { pageProps: PageProps, user: User | null }) {
 
     const navbarState = localStorage.getItem('navbarState') == "open";
     const openState = useSignal<boolean>(navbarState);
@@ -75,18 +74,18 @@ export default function NavBar({pageProps}: { pageProps: PageProps }) {
     
                         <div class="nav-list nav-right">
                             <div class="user-options">
-                                <img class="profilePic" src={user.profilePicture?.url}/>
+                                <img class="profilePic" src={user?.profilePicture?.url}/>
 
-                                <div class="popout">
+                                <div class="popout" hidden>
                                     <div>
                                         <div class='top'>
 
                                             <div class="switch-account">
                                                 <div class="details">
-                                                    <img class="profilePic" src={user.profilePicture?.url}/>
+                                                    <img class="profilePic" src={user?.profilePicture?.url}/>
                                                     
                                                     <div class="account">
-                                                        <p class="username">{user.username}</p>
+                                                        <p class="username">{user?.username}</p>
                                                         <p class="type">Personal Account</p>
                                                     </div>
                                                 </div>
@@ -99,8 +98,8 @@ export default function NavBar({pageProps}: { pageProps: PageProps }) {
                                         </div>
 
                                         <div class="user-details">
-                                            <p class="name">{`${user.firstName} ${user.lastName}`}</p>
-                                            <p class="username">@{user.username}</p>
+                                            <p class="name">{`${user?.firstName} ${user?.lastName}`}</p>
+                                            <p class="username">@{user?.username}</p>
                                         </div>
                                     </div>
 
@@ -143,16 +142,20 @@ export default function NavBar({pageProps}: { pageProps: PageProps }) {
                                     <a href="/projects"><AIcon startPaths={Icons.Filter}/></a>
                                     <label hidden={openState.value}>Projects</label>
                                 </li>
-                                <li class={`${(currentRoute[1] == "settings" ? "active" : "")} nav-btn-link`}>
-                                    <AIcon ref={(el) => (refs.current['settings-btn'] = el)} className="settings-btn" startPaths={Icons.Settings}/>
-                                    <label hidden={openState.value}>Settings</label>
-                                </li>
                             </ul>
                         </div>
                     </div>
                 
-                    <div class="search-popout">
+                    <div class="search-modal">
     
+                    </div>
+
+                    <div class="settings-modal">
+                        
+                    </div>
+
+                    <div class="signout-modal">
+                        
                     </div>
                 </nav>
                 

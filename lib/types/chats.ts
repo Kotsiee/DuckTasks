@@ -4,7 +4,7 @@ import { ChatRoles, ChatType, Logo, Messages } from "./index.ts";
 export interface Chat {
     id: string;
     chatType: ChatType;
-    users?: ChatRoles[] | null;
+    users: ChatRoles[] | null;
     name: string | null;
     meta: ChatMeta | null;
     lastMessage?: Messages;
