@@ -1,0 +1,11 @@
+.div {
+    background-color: brown;
+    position: relative;
+
+    .btns{
+        display: block;
+        button {
+            background-color: blueviolet;
+        }
+    }
+}

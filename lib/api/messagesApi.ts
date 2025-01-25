@@ -43,7 +43,7 @@ export async function fetchMessagesByChat(chatId: string): Promise<Messages[] | 
 }
 
 export async function newMessage(msg: Messages): Promise<Messages | null> {
-    const { data, error, status } = await supabase
+    const { data, error } = await supabase
     .from('messages')
     .insert([
         {
@@ -55,8 +55,6 @@ export async function newMessage(msg: Messages): Promise<Messages | null> {
     ])
     .select('*')
     .single()
-
-    // console.log(data, error, status)
 
     if(error){
         console.log("newMessage: error was found :( - " + error.details);

@@ -3,10 +3,11 @@ import { useEffect, useState } from "preact/hooks";
 import { Chat, ChatRoles, Messages, User } from "../../lib/types/index.ts";
 import { PageProps } from '$fresh/server.ts';
 import AIcon, { Icons } from "../../components/Icons.tsx";
-import { useSignal } from 'https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js';
+import { Signal, useSignal } from 'https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js';
 import { DateTime } from "https://esm.sh/luxon@3.5.0";
 import { createClient, RealtimePostgresChangesPayload } from "https://esm.sh/@supabase/supabase-js@2.47.10";
-import { fetchChatByID } from "../../lib/api/chatApi.ts";
+import { useRef } from 'preact/hooks';
+import Textbox from "../../components/Textbox.tsx";
 
 interface IChatMessages {
     supabaseUrl: string;
@@ -18,7 +19,6 @@ export default function ChatMessages(props: { pageProps: PageProps, p: IChatMess
     const [messages, setMessages] = useState<Messages[]>([]);
     const [chat, setChat] = useState<Chat>();
     const user = props.p.user;
-    const inputMessage = useSignal<string>('');
 
     const supabase = createClient(props.p.supabaseUrl, props.p.supabaseAnonKey);
 
@@ -106,7 +106,7 @@ export default function ChatMessages(props: { pageProps: PageProps, p: IChatMess
         })
     }
 
-    const enterMessage = async () => {
+    const enterMessage = async (inputMessage: Signal<string>) => {
         const id = `msg-${messages.length}`
 
         const newMessage: Messages = {
@@ -168,36 +168,11 @@ export default function ChatMessages(props: { pageProps: PageProps, p: IChatMess
                             </div>
                         </div>
                     </div>
-                
 
-                    <div class="chat-input">
-                        <div class="chat-input-text">
-                            <AIcon startPaths={Icons.Plus} className="additional-btn" size={20}/>
+                    <ChatInput enterMessage={(inputMessage) => enterMessage(inputMessage)}/>
 
-                            <div class="chat-input-additional" hidden>
-                                <ul>
-                                    <li>File</li>
-                                    <li>Poll</li>
-                                    <li>Project</li>
-                                    <li>Person</li>
-                                    <li>Post</li>
-                                </ul>
-                            </div>
-
-                            <input 
-                            class="message-input" 
-                            type="text" 
-                            placeholder="Type your message..."
-                            value={inputMessage.value}
-                            onInput={(e) => inputMessage.value = (e.target as HTMLInputElement).value}
-                            onKeyUp={(key) => { if (key.key == 'Enter' && inputMessage.value) enterMessage() }}
-                            />
-
-                            <button 
-                            class="message-sent"
-                            onClick={() => { if (inputMessage.value) enterMessage() }}
-                            ><AIcon startPaths={Icons.Send} className="send-icon"/></button>
-                        </div>
+                    <div class="modals">
+                        
                     </div>
 
                     <div class="chat-messages-area">
@@ -222,7 +197,9 @@ export default function ChatMessages(props: { pageProps: PageProps, p: IChatMess
 
 const ChatMessage = (props: {msg: Messages, userId: string, prevUID?: string}) => {
     const isSender = props.msg.user?.user?.id == props.userId
-    console.log(props.prevUID)
+
+    if (props.msg.content.includes('\n'))
+        console.log(props.msg.content)
 
     return(
         <li class="chat-message">
@@ -240,7 +217,7 @@ const ChatMessage = (props: {msg: Messages, userId: string, prevUID?: string}) =
                         <AIcon className="option-icon menu" startPaths={Icons.DotMenu}/>
                     </div>
 
-                    <p class="content">{ props.msg.content }</p>
+                    <p class="content">{ props.msg.content.trim().split('\n').map(p => <>{p}<br/></>) }</p>
 
                     <div class={`options ${!isSender ? 'active' : ''}`}>
                         <AIcon className="option-icon menu" startPaths={Icons.DotMenu}/>
@@ -265,6 +242,169 @@ const SelectView = () => {
                     <label for="select-view-input-files"/>
                     <input type="radio" class="select-view-input" name="select-view-input" id="select-view-input-info" hidden/>
                     <label for="select-view-input-info"/>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+const ChatInput = ({enterMessage} : {enterMessage: (inputMessage: Signal<string>) => Promise<void>}) => {
+    const inputMessage = useSignal<string>('');
+    const highlightedText = useSignal<Selection | null>(null);
+
+    const openState = useSignal<boolean>(false);
+    const isInitial = useSignal<boolean>(true);
+
+    const defaultVal = "Select Item";
+    const addHover = useSignal<string>(defaultVal);
+
+    const addOpen = useRef<AIcon>();
+    const container = useRef<HTMLDivElement>(null);
+
+    document.documentElement.style.setProperty("--footer-hight", `${(container.current?.parentElement?.scrollHeight || 120) + 50}px` || "160px");
+    
+    return (
+        <div class="chat-input">
+            <div class="container">
+                <div class="advanced-text-area">
+                    <ul className="text-style">
+                        <li className="bold">
+                            <AIcon startPaths={Icons.Filter}/>
+                        </li>
+                        <li className="italic">
+                            <AIcon startPaths={Icons.Filter}/>
+                        </li>
+                        <li className="underline">
+                            <AIcon startPaths={Icons.Filter}/>
+                        </li>
+                        <li className="strikethrough">
+                            <AIcon startPaths={Icons.Filter}/>
+                        </li>
+                    </ul>
+
+                    <ul className="list-style">
+                        <li className="bullet">
+                            <AIcon startPaths={Icons.Filter}/>
+                        </li>
+                        <li className="numbered">
+                            <AIcon startPaths={Icons.Filter}/>
+                        </li>
+                        <li className="toggle">
+                            <AIcon startPaths={Icons.Filter}/>
+                        </li>
+                    </ul>
+                </div>
+
+                <div ref={container} class="chat-input-text">
+                    <AIcon ref={addOpen} startPaths={Icons.Plus} endPaths={Icons.X} className="additional-btn" size={20} 
+                    onClick={() => {openState.value = !openState.value; isInitial.value = false}}
+                    initalState={openState.value}
+                    />
+
+                    <div class={`chat-input-additional ${openState.value ? 'show' : isInitial.value ? '' : 'hide'}`}
+                    onMouseLeave={() => {
+                        addHover.value = defaultVal;
+                        addOpen.current?.click()
+                    }}>
+                        <p class="item-select">{addHover.value}</p>
+
+                        <ul>
+                            <li onMouseEnter={() => addHover.value = 'File'}>
+                                <AIcon startPaths={Icons.Filter}/>
+                            </li>
+                            <li onMouseEnter={() => addHover.value = 'Poll'}>
+                                <AIcon startPaths={Icons.Filter}/>
+                            </li>
+                            <li onMouseEnter={() => addHover.value = 'Project'}>
+                                <AIcon startPaths={Icons.Filter}/>
+                            </li>
+                            <li onMouseEnter={() => addHover.value = 'Person'}>
+                                <AIcon startPaths={Icons.Filter}/>
+                            </li>
+                            <li onMouseEnter={() => addHover.value = 'Post'}>
+                                <AIcon startPaths={Icons.Filter}/>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <Textbox 
+                    text={inputMessage} 
+                    highlightedText={highlightedText}
+                    class="message-input"
+                    placeholder="Type your message..."
+                    onSubmit={(e) => {enterMessage(e as Signal<string>)}}
+
+                    onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = "40px";
+                        const initialHeight = 40;
+                        const newHeight = Math.max(initialHeight, target.scrollHeight);
+                        target.style.height = `${newHeight}px`;
+
+                        container.current?.style.setProperty("height", `${newHeight}px`);
+                        document.documentElement.style.setProperty("--footer-hight", `${(container.current?.parentElement?.scrollHeight || 120) + 50}px` || "160px");
+                        globalThis.scrollTo({ top: globalThis.innerHeight });
+                    }}
+                    />
+
+                    {/* <textarea
+                    class="message-input"
+                    placeholder="Type your message..."
+                    value={inputMessage.value}
+                    onMouseUp={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        const start = target.selectionStart
+                        const end = target.selectionEnd
+
+                        highlightedText.value = target.value.substring(start, end);
+                        console.log(highlightedText.value)
+                    }}
+                    onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = "40px";
+                        const initialHeight = 40;
+                        const newHeight = Math.max(initialHeight, target.scrollHeight);
+                        target.style.height = `${newHeight}px`;
+
+                        container.current?.style.setProperty("height", `${newHeight}px`);
+
+
+                        // Update input value
+                        inputMessage.value = target.value;
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault(); // Prevent newline without Shift
+                        }
+                    }}
+                    onKeyUp={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey && inputMessage.value) {
+                        enterMessage(inputMessage); // Send the message
+                        }
+                    }}
+                    /> */}
+
+                    <div class="options">
+                        <ul>
+                            <li>
+                                <button className="advanced-text">
+                                    <AIcon startPaths={Icons.Filter} className="advanced-text-icon"/>
+                                </button>
+                            </li>
+                            <li>
+                                <button className="record-audio">
+                                    <AIcon startPaths={Icons.Filter} className="record-icon"/>
+                                </button>
+                            </li>
+                            <li class="message-sent">
+                                <button
+                                onClick={() => { if (inputMessage.value) enterMessage(inputMessage) }}
+                                >
+                                    <AIcon startPaths={Icons.Send} className="send-icon"/>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

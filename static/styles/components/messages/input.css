@@ -1,0 +1,184 @@
+.messages-layout .chat-input {
+    position: fixed;
+    bottom: 0;
+    transition: width var(--width-transition);
+    width: calc(100% - var(--header-side-width-desktop) - var(--messages-width));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(#0000, var(--bg-colour-tertiary));
+    backdrop-filter: blur(3px);
+    padding-bottom: 36px;
+
+    .container {
+        background-color: var(--bg-colour-tertiary);
+        outline: 1px solid var(--text-color-dark);
+        border-radius: var(--border-radius-large);
+        width: 80%;
+    }
+
+    .advanced-text-area {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+
+        ul {
+            display: flex;
+            align-items: center;
+            margin-left: 20px;
+            padding-right: 20px;
+
+            border-right: 1px solid #444;
+        }
+    }
+
+    .chat-input-text {
+        height: 40px;
+        max-height: 12vh;
+        display: flex;
+        align-items: center;
+
+        .message-input {
+            height: auto;
+            max-height: inherit;
+            width: 100%;
+            font-size: 0.9em;
+            resize: none;
+            overflow-y: auto;
+            box-sizing: border-box;
+
+            .input {
+                height: inherit;
+                padding: 10px;
+            }
+        }
+    }
+
+    .options {
+        margin-right: 4px;
+
+        ul {
+            display: flex;
+            align-items: center;
+
+            li {
+                padding: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                /* margin: 0 4px; */
+
+                .icon {
+                    padding: 2px;
+                    /* fill: var(--text-color);
+                    stroke: none; */
+                }
+
+                &.message-sent {
+                    background-color: var(--primary-colour);
+                    border-radius: 40px;
+                    padding: 4px 12px;
+
+                    button {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+        
+                    .send-icon {
+                        padding: 2px;
+                        fill: var(--text-color);
+                        stroke: none;
+                    }
+        
+                    &:hover {
+                        background-color: var(--primary-colour-hover);       
+                    }
+                }
+            }
+        }
+    }
+
+    .additional-btn{
+        stroke-width: 3px;
+        margin-left: 12px;
+        margin-right: 8px;
+        border-radius: 20px;
+        cursor: pointer;
+        /* transition: transform 150ms;
+
+        &:hover{
+            transform: rotate(45deg);
+        } */
+    }
+
+    .chat-input-additional{
+        position: absolute;
+        bottom: 60px;
+        margin-bottom: 20px;
+        border-radius: var(--border-radius-small);
+        outline: 1px solid var(--text-color);
+        padding: 4px;
+        background-color: var(--bg-colour-tertiary);
+        display: none;
+
+        .item-select{
+            font-size: 0.8em;
+            text-align: center;
+        }
+
+        ul {
+            display: flex;
+
+            li {
+                border-radius: var(--border-radius-smaller);
+                min-width: 40px;
+                padding: 8px;
+                margin: 4px;
+                font-size: 0.8em;
+                cursor: pointer;
+                text-align: center;
+                position: relative;
+
+                &:hover {
+                    background-color: var(--btn-active);
+                }
+            }
+        }
+
+        &.show {
+            display: block;
+            animation: popup 150ms;
+        }
+
+        &.hide {
+            animation: popup-reverse 150ms;
+        }
+    }
+}
+
+@keyframes popup {
+    0% {
+        display: none;
+        transform: translate(-50%, 50%);
+        scale: 0;
+    }
+    100% {
+        display: block;
+        transform: translate(0, 0);
+        scale: 1;
+    }
+}
+
+@keyframes popup-reverse {
+    0% {
+        display: block;
+        transform: translate(0, 0);
+        scale: 1;
+    }
+    100% {
+        display: none;
+        transform: translate(-50%, 50%);
+        scale: 0;
+    }
+}

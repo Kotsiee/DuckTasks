@@ -41,6 +41,7 @@
   --font-small: 0.8em;
 
   --border-radius: 16px;
+  --border-radius-large: 20px;
   --border-radius-small: 8px;
   --border-radius-smaller: 4px;
 
@@ -101,6 +102,15 @@ h4{ font-size: 1.5em; }
 h5{ font-size: 1.25em; }
 h6{ font-size: 1em; }
 
+input, button, textarea {
+  border: none;
+  outline: none;
+  background: none;
+}
+
+a, button {
+  cursor: pointer;
+}
 
 /* Scrollbar width */
 ::-webkit-scrollbar {
