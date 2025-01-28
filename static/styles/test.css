@@ -1,11 +1,32 @@
 .div {
-    background-color: brown;
+    background-color: black;
     position: relative;
-
-    .btns{
-        display: block;
-        button {
-            background-color: blueviolet;
-        }
-    }
 }
+
+/* console.log(htmlToJson(ref.current))
+  
+        console.log(startContainer)
+  
+        const oldBlock = ref.current.children[startIndex];
+        const newBlock = document.createElement("div");
+  
+        oldBlock.textContent = start || '\n'
+        newBlock.innerText = end || '\n'
+  
+        ref.current.replaceChild(oldBlock, ref.current.children[startIndex])
+  
+        startIndex > childrenArray.length - 1 ?
+        ref.current?.appendChild(newBlock) :
+        ref.current?.insertBefore(newBlock, ref.current.children[startIndex + 1]) */
+
+
+
+/* 
+        const newRange = document.createRange();
+        const newStartNode = nodeArray[startIndex]?.firstChild || nodeArray[startIndex];
+        const newEndNode = nodeArray[endIndex]?.firstChild || nodeArray[endIndex];
+    
+        newRange.setStart(newStartNode, newStartNode.textContent!.length);
+        newRange.setEnd(newEndNode, newEndNode.textContent!.length);
+        selection.removeAllRanges();
+        selection.addRange(newRange); */

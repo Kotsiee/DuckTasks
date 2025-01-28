@@ -1,97 +1,135 @@
-import { toChildArray } from "https://esm.sh/v128/preact@10.22.0/src/index.js";
 import { createElement } from "https://esm.sh/v128/preact@10.22.0/src/index.js";
 import { useSignal } from "https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js";
 import { useRef, useEffect } from 'preact/hooks';
+import { cleanUpNode, detectStyleChange, style, styleToTag, toStyle } from "../lib/utils/tbstyle.ts";
+
+interface ITextFunctions {
+  style: style;
+  defaults: style;
+  type: 'color' | 'size' | 'bold' | 'italic' | 'underline' | 'strike';
+  range: Range;
+  childrenArray: Element[];
+
+  startIndex: number;
+  startElement: HTMLElement;
+  startContainer: Node;
+  startOffset: number;
+
+  endIndex: number;
+  endElement: HTMLElement;
+  endContainer: Node;
+  endOffset: number;
+}
 
 export default function Test() {
-  const text = useSignal<string>('heyy');
+  const text = useSignal<string>(`
+        <div class="soc"><span style="color: white">123</span></div>
+        <div class="soc"><span style="color: white">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span></div>
+        <div class="soc"><span style="color: white">123456789</span><span style="color: cyan">123456789</span></div>
+        <div class="soc">
+          <span style="color: white">hello? </span>
+          <span style="color: rebeccapurple">it's me </span>
+          <span style="color: white">I was wondering </span>
+          <span style="color: green; font-weight: bold;">if after all </span>
+          <span style="color: seagreen;">these years </span>
+          <span style="color: red">you'd </span>
+          <span style="color: red; font-weight: bold;">like to meet </span>
+          <span style="color: white">to go over </span>
+          <span style="color: orange">everything</span>
+        </div>`);
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    ref.current!.innerHTML = text.value;
+  }, []);
 
   const pBlock = (e: createElement.JSX.TargetedKeyboardEvent<HTMLDivElement>) => {
     const selection = globalThis.getSelection();
-    const childrenArray = Array.from(ref.current?.childNodes || []);
+    const nodeArray = Array.from(ref.current?.childNodes || []);
+    const childrenArray = Array.from(ref.current?.children || []);
 
-    if (e.key === "Enter" && selection && ref.current) {
-      e.preventDefault();
-  
-      // Save selection
+    const styleDef: style = {
+      color: 'white',
+      size: undefined,
+      bold: false,
+      italic: false,
+      underline: false,
+      strike: false,
+    }
+
+    const newStyle: style = {
+      color: 'pink',
+      size: undefined,
+      bold: false,
+      italic: false,
+      underline: false,
+      strike: false,
+    }
+
+    const keyPattern = new RegExp(/(Digit[0-9]|Numpad[0-9])|(Key[a-zA-Z])|(Bracket|Slash|slash|colon|Quote|quote|Comma|Period|Minus|Equal)/g)
+    // console.log(keyPattern.test(e.code), e.code, e.key, e.metaKey)
+
+    if (selection  && ref.current) {
       const range = selection.getRangeAt(0);
       const startContainer = range.startContainer;
       const endContainer = range.endContainer;
-      const startOffset = range.startOffset;
-      const endOffset = range.endOffset;
-  
-      // Traverse the children to find the correct node indices
-      let startIndex = childrenArray.findIndex(
+
+      const startIndex = childrenArray.findIndex(
         (child) => child === startContainer || child.contains(startContainer)
       );
-      let endIndex = childrenArray.findIndex(
+      
+      const endIndex = childrenArray.findIndex(
         (child) => child === endContainer || child.contains(endContainer)
       );
+
+      const newSetStyle: ITextFunctions = {
+        style: {},
+        defaults: styleDef,
+        type: "color",
+        range: range,
+        childrenArray: childrenArray,
+        startIndex: startIndex,
+        startElement: startContainer.parentElement!,
+        startContainer: startContainer,
+        startOffset: findI(ref.current, startContainer, ref.current, range.startOffset, [])!,
+        endIndex: endIndex,
+        endElement: endContainer.parentElement!,
+        endContainer: endContainer,
+        endOffset: findI(ref.current, endContainer, ref.current, range.endOffset, [])!
+      }
   
-      console.log("Start/End Indices:", startIndex, endIndex);
-  
-      // Ensure indices are valid
-      if (startIndex === -1 || endIndex === -1) return;
-  
-      for (let i = startIndex; i <= endIndex; i++) {
-        const node = ref.current.children[i];
-  
-        if (!node) continue;
-  
-        const isStartNode = i === startIndex;
-        const isEndNode = i === endIndex;
-  
-        // Handle nodes that partially overlap the selection
-        if (isStartNode || isEndNode) {
-          const text = node.textContent || "";
-  
-          const start = isStartNode ? text.slice(0, startOffset) : "";
-          const middle = isStartNode && isEndNode
-            ? text.slice(startOffset, endOffset)
-            : isStartNode
-            ? text.slice(startOffset)
-            : text.slice(0, endOffset);
-          const end = isEndNode ? text.slice(endOffset) : "";
-  
-          // Wrap the middle part with a <span>
-          const wrapped = `<span>${middle}</span>`;
-          node.innerHTML = `${start}${wrapped}${end}`;
-        } else {
-          // Fully selected nodes are wrapped entirely
-          node.innerHTML = `<span>${node.textContent}</span>`;
-        }
+      if (e.key === "Enter") {
+        e.preventDefault();
+
+        newSetStyle.type = "color"
+        newSetStyle.style.color = "pink"
+        setStyle({...newSetStyle})
       }
 
-      const newRange = document.createRange();
-      const newStartNode = ref.current.childNodes[startIndex]?.firstChild || ref.current.childNodes[startIndex];
-      const newEndNode = ref.current.childNodes[endIndex]?.firstChild || ref.current.childNodes[endIndex];
+      if (e.code == 'KeyB' && e.ctrlKey) {
+        newSetStyle.type = "bold"
+        newSetStyle.style.bold = true
+        setStyle({...newSetStyle})
+      }
 
-      newRange.setStart(newStartNode, startOffset);
-      newRange.setEnd(newEndNode, endOffset);
-      selection.removeAllRanges();
-      selection.addRange(newRange);
+      if (e.code == 'KeyI' && e.ctrlKey) {
+        newSetStyle.type = "italic"
+        newSetStyle.style.italic = true
+        setStyle({...newSetStyle})
+      }
 
-      // const oldBlock = ref.current.children[startIndex];
-      // const newBlock = document.createElement("div");
+      if (e.code == 'KeyU' && e.ctrlKey) {
+        newSetStyle.type = "underline"
+        newSetStyle.style.underline = true
+        setStyle({...newSetStyle})
+      }
 
-      // oldBlock.textContent = start || '\n'
-      // newBlock.innerText = end || '\n'
+      if (e.code == 'KeyQ' && e.ctrlKey) {
+        newSetStyle.type = "strike"
+        newSetStyle.style.strike = true
+        setStyle({...newSetStyle})
+      }
 
-      // ref.current.replaceChild(oldBlock, ref.current.children[startIndex])
-
-      // startIndex > childrenArray.length - 1 ?
-      // ref.current?.appendChild(newBlock) :
-      // ref.current?.insertBefore(newBlock, ref.current.children[startIndex + 1])
-
-      // const newRange = document.createRange();
-      // const newStartNode = childrenArray[startIndex]?.firstChild || childrenArray[startIndex];
-      // const newEndNode = childrenArray[endIndex]?.firstChild || childrenArray[endIndex];
-
-      // newRange.setStart(newStartNode, minOff);
-      // newRange.setEnd(newEndNode, maxOff);
-      // selection.removeAllRanges();
-      // selection.addRange(newRange);
     }
   };
 
@@ -104,14 +142,265 @@ export default function Test() {
       ref={ref}
       onKeyDown={(e) => {pBlock(e)}}
       onInput={(e) => {
-        text.value = e.currentTarget.textContent || "";
+        text.value = e.currentTarget.innerHTML || "";
       }}
       >
-        <div>123</div>
-        <div>12345</div>
-        <div>1234567</div>
-        <div>123456789</div>
       </div>
     </div>
   );
+}
+
+function setStyle(props: ITextFunctions) {
+  const { startIndex, endIndex, childrenArray, style, defaults, startElement, endElement } =
+    props;
+
+  const loop = (startI: number, endI: number, cArray: Element[], container: Element, rso: number, so: number, reo: number, eo: number, endStyle: style, pos?: string): string => {
+    let currentStyle = style
+    let currentHTML = ''
+
+    for (let index = startI; index <= endI; index++) {
+      const newContainer = cArray[index] as HTMLElement
+      const newStyle = toStyle(newContainer?.style)!
+      newStyle[props.type as keyof style] = style[props.type as keyof style];
+      let resultHtml = '';
+
+      if (index == startI) {
+        if(detectStyleChange(currentStyle, newStyle, props.type)) currentStyle = newStyle
+
+        const txtStart = newContainer.textContent!.slice(0, rso);
+        const txtMid = newContainer.textContent!.slice(rso);
+        const startHtml = container.innerHTML!.slice(0, findIndex(container, so)! - txtStart.length);
+
+        resultHtml = startHtml + txtStart + '</span>' + styleToTag(currentStyle) + txtMid;
+        currentHTML = resultHtml
+      }
+      else if (index == endI) {
+        if(detectStyleChange(currentStyle, newStyle, props.type)){
+          currentStyle = newStyle
+          resultHtml = '</span>' + styleToTag(currentStyle)
+        }
+
+        const txtStart = newContainer.textContent!.slice(0, reo);
+        const txtEnd = newContainer.textContent!.slice(reo);
+        const endHtml = pos == 'start' ? '</span></div>' : container.innerHTML!.slice(findIndex(container, eo)! + txtEnd.length);
+        resultHtml += txtStart + '</span>' + styleToTag(endStyle) + txtEnd + endHtml;
+        currentHTML += resultHtml
+
+        console.log(resultHtml)
+      }
+      else {
+        if(detectStyleChange(currentStyle, newStyle, props.type)){
+          currentStyle = newStyle
+          resultHtml = '</span>' + styleToTag(currentStyle)
+        }
+
+        resultHtml += newContainer.textContent;
+        currentHTML += resultHtml
+      }
+    }
+
+    return currentHTML
+  }
+
+  // Case 1: Style is applied within a single element
+  if (startIndex === endIndex) {
+    const container = childrenArray[startIndex];
+    const cArray = Array.from(container.children || []);
+
+    const startI = cArray.findIndex(
+      (child) => child === props.startContainer || child.contains(props.startContainer)
+    );
+    
+    const endI = cArray.findIndex(
+      (child) => child === props.endContainer || child.contains(props.endContainer)
+    );
+
+    container.innerHTML = loop(startI, endI, cArray, container, props.range.startOffset, props.startOffset, props.range.endOffset, props.endOffset, toStyle(endElement.style)!)
+  }
+  else {
+    // Case 2: Style spans across multiple elements
+    for (let index = startIndex; index <= endIndex; index++) {
+      const container = childrenArray[index];
+      const cArray = Array.from(container.children || []);
+      let resultHtml = '';
+
+      const startI = cArray.findIndex(
+        (child) => child === props.startContainer || child.contains(props.startContainer)
+      );
+      
+      const endI = cArray.findIndex(
+        (child) => child === props.endContainer || child.contains(props.endContainer)
+      );
+
+      if (index === startIndex) {
+        console.log(container)
+        console.log(props.range.startOffset, props.startOffset, cArray.length, container.textContent!.length)
+        resultHtml = loop(startI, cArray.length - 1, cArray, container, props.range.startOffset, props.startOffset, cArray.length, container.textContent!.length, style, 'start');
+      } else if (index === endIndex) {
+        resultHtml = loop(0, endI, cArray, container, 0, 0, props.range.endOffset, props.endOffset, toStyle(endElement.style)!);
+      } else {
+        resultHtml = loop(0, cArray.length - 1, cArray, container, 0, 0, cArray.length, container.textContent!.length, style, 'start');
+      }
+      
+      container.innerHTML = resultHtml
+    }
+  }
+}
+
+function count(history: number[], container: Node): number {
+  let totalCount = 0;
+
+  function traverse(node: Node, depth: number): void {
+    if (depth >= history.length) {
+      return;
+    }
+
+    const index = history[depth];
+    const childNodes = Array.from(node.childNodes);
+
+    for (let i = 0; i < childNodes.length; i++) {
+      const child = childNodes[i];
+
+      if (i < index){
+        totalCount += child.textContent?.length || 0
+      }
+      else if (i === index) {
+        traverse(child, depth + 1);
+      }
+    }
+  }
+
+  traverse(container, 0);
+  return totalCount;
+}
+
+const findI = (pArray: Node, node: Node, parent: Node, pos: number, history?: number[]): number | null => {
+  const cArray = Array.from(pArray.childNodes || []);
+  let cnt: number | null = null;
+
+  for (let i = 0; i < cArray.length; i++) {
+    const cNode = cArray[i];
+
+    if (cNode === node) {
+      history?.push(i);
+
+      if (history) {
+        if (history.length >= 1 && history[1] > 0) {
+          const h = history.slice(1);
+          cnt = count(h, parent.childNodes[history[0]]) + pos;
+
+          return cnt;
+        }
+        else{
+          return pos
+        }
+      }
+
+      return i;
+    }
+    if (cNode.contains(node)) {
+      history?.push(i);
+      const childIndex = findI(cNode, node, parent, pos, history);
+
+      if (childIndex !== null && childIndex > 0) {
+        return childIndex; // Updated to return the correct childIndex instead of "i"
+      }
+    }
+  }
+
+  return cnt ? cnt : null;
+};
+
+function findIndex(
+  element: Element,
+  textContentIndex: number
+): number | null {
+  const textContent = element.textContent;
+  const innerHTML = element.innerHTML;
+
+  if (!textContent || textContentIndex < 0 || textContentIndex >= textContent.length) {
+    return null; // Invalid input or out of bounds
+  }
+
+  let textIndex = 0; // Index for textContent traversal
+  let htmlIndex = 0; // Index for innerHTML traversal
+
+  // Traverse innerHTML while matching textContent
+  while (htmlIndex < innerHTML.length) {
+    const htmlChar = innerHTML[htmlIndex];
+
+    // If the current HTML character is part of the visible text
+    if (htmlChar === textContent[textIndex]) {
+      if (textIndex === textContentIndex) {
+        return htmlIndex; // Found the corresponding index
+      }
+      textIndex++;
+    }
+
+    htmlIndex++;
+  }
+
+  return null; // Not found
+}
+
+
+
+type HtmlNode = {
+  tag: string; // Tag name
+  attributes: { [key: string]: string }; // Attributes as key-value pairs
+  children: HtmlNode[]; // Child nodes
+  content?: string; // Optional text content
+};
+
+function htmlToJson(element: Element): HtmlNode {
+  const node: HtmlNode = {
+      tag: element.tagName.toLowerCase(),
+      attributes: {},
+      children: []
+  };
+
+  // Add attributes
+  for (const attr of element.attributes) {
+      node.attributes[attr.name] = attr.value;
+  }
+
+  // Add text content if it's a text-only node
+  if (element.childNodes.length === 1 && element.childNodes[0].nodeType === Node.TEXT_NODE) {
+      node.content = element.textContent?.trim();
+  }
+
+  // Recursively process child elements
+  for (const child of Array.from(element.children)) {
+      node.children.push(htmlToJson(child));
+  }
+
+  return node;
+}
+
+function jsonToHtml(node: HtmlNode): string {
+  // Start with the opening tag and its attributes
+  const attributes = node.attributes
+      ? Object.entries(node.attributes)
+            .map(([key, value]) => ` ${key}="${value}"`)
+            .join("")
+      : "";
+
+  // Handle content or children
+  let content = "";
+
+  if (node.children && node.children.length > 0) {
+      // Recursively process children
+      content = node.children.map(jsonToHtml).join("");
+  } else if (node.content) {
+      // Add text content if no children exist
+      content = node.content;
+  }
+
+  // Self-closing tag if no children or content
+  if (!content) {
+      return `<${node.tag}${attributes} />`;
+  }
+
+  // Return full tag with content
+  return `<${node.tag}${attributes}>${content}</${node.tag}>`;
 }
