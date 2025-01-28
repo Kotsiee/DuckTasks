@@ -27,22 +27,33 @@ export const toStyle = (style?: CSSStyleDeclaration | null): style | null => {
 export const styleToTag = (style: style | null): string | null => {
   if (!style) return null;
 
-  const styleString = `
-      ${style.color ? `color: ${style.color};` : ""}
-      ${style.size ? `font-size: ${style.size};` : ""}
-      ${style.bold ? `font-weight: bold;` : ""}
-      ${style.italic ? `font-style: italic;` : ""}
-      ${
-    style.underline || style.strike
-      ? `text-decoration: ${style.underline ? "underline" : ""} ${
-        style.strike ? "line-through" : ""
-      };`
-      : ""
-  }
-    `.trim();
+  let styleString = ''
+  
+  styleString +=  `${style.color ? `color: ${style.color};` : ""}`
+  styleString +=  `${style.size ? `font-size: ${style.size};` : ""}`
+  styleString +=  `${style.bold ? `font-weight: bold;` : ""}`
+  styleString +=  `${style.italic ? `font-style: italic;` : ""}`
+  styleString +=  `${style.underline || style.strike? `text-decoration: ${style.underline ? "underline" : ""} ${style.strike ? "line-through" : ""};`: ""}`
 
   return `<span style="${styleString}">`;
 };
+
+export const styleToString = (style: style | null): string | null => {
+  if (!style) return null;
+
+  let styleString = ''
+
+  styleString +=  `${style.color ? `color: ${style.color};` : ""}`
+  styleString +=  `${style.size ? `font-size: ${style.size};` : ""}`
+  styleString +=  `${style.bold ? `font-weight: bold;` : ""}`
+  styleString +=  `${style.italic ? `font-style: italic;` : ""}`
+  styleString +=  `${style.underline || style.strike? `text-decoration: ${style.underline ? "underline" : ""} ${style.strike ? "line-through" : ""};`: ""}`
+
+  return styleString
+};
+
+
+
 
 // Utility function to clean up text content of a node
 export const cleanUpNode = (
@@ -58,7 +69,7 @@ export const cleanUpNode = (
 };
 
 export function detectStyleChange(current: style, newStyle: style, attr: string): boolean {
-    let arr = ["color", "size", "bold", "italic", "underline", "strike"]
+    const arr = ["color", "size", "bold", "italic", "underline", "strike"]
     arr.splice(arr.indexOf(attr), 1)
 
     const styleKeys: (keyof style)[] = arr;
