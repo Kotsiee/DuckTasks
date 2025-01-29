@@ -13,18 +13,18 @@ interface ITextFunctions {
 
 export default function Test() {
   const text = useSignal<string>(`
-        <div class="soc"><span style="color: white">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span></div>
-        <div class="soc"><span style="color: white">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span></div>
-        <div class="soc"><span style="color: white">123456789</span><span style="color: cyan; font-weight: bold">123456789</span><span style="color: purple">123456789</span></div>
-        <div class="soc">
-          <span style="color: white">hello? </span>
+        <div><span style="color: default">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span></div>
+        <div><span style="color: default">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span></div>
+        <div><span style="color: default">123456789</span><span style="color: cyan; font-weight: bold">123456789</span><span style="color: purple">123456789</span></div>
+        <div>
+          <span style="color: default">hello? </span>
           <span style="color: rebeccapurple">it's me </span>
-          <span style="color: white">I was wondering </span>
+          <span style="color: default">I was wondering </span>
           <span style="color: green; font-weight: bold;">if after all </span>
           <span style="color: seagreen;">these years </span>
           <span style="color: red">you'd </span>
           <span style="color: red; font-weight: bold;">like to meet </span>
-          <span style="color: white">to go over </span>
+          <span style="color: default">to go over </span>
           <span style="color: orange">everything</span>
         </div>`);
   const ref = useRef<HTMLDivElement>(null);
@@ -33,20 +33,45 @@ export default function Test() {
     ref.current!.innerHTML = text.value;
   }, []);
 
+  const keyUp = (e: createElement.JSX.TargetedKeyboardEvent<HTMLDivElement>) => {
+    const selection = globalThis.getSelection();
+    const range = selection!.getRangeAt(0);
+    const startContainer = range.startContainer;
+    const endContainer = range.endContainer;
+
+    let container = startContainer as HTMLElement;
+    while (container && container.tagName !== "DIV") {
+      container = container.parentElement!;
+    }
+
+    const spans = Array.from(container.children) as HTMLSpanElement[];
+    const index = spans.findIndex((span) => span.contains(startContainer));
+
+    if (e.key === "Backspace") {
+      range.setStart(startContainer, range.startOffset)
+      range.setEnd(startContainer, range.startOffset)
+
+
+      if (spans[index] && spans[index + 1]) {
+        if(!detectStyleChange(toStyle(spans[index].style)!, toStyle(spans[index + 1].style)!)) {
+          const newNode = document.createElement('span')
+          newNode.innerText = (spans[index].textContent || '') + (spans[index + 1].textContent || '')
+          newNode.setAttribute('style', styleToString(toStyle(spans[index].style))!)
+          container.replaceChild(newNode, spans[index])
+          container.removeChild(spans[index + 1])
+
+          range.setStart(startContainer, spans[index].textContent!.length)
+          range.setEnd(startContainer, spans[index].textContent!.length)
+        }
+      }
+    }
+  }
+
   const pBlock = (e: createElement.JSX.TargetedKeyboardEvent<HTMLDivElement>) => {
     const selection = globalThis.getSelection();
-    const childrenArray = Array.from(ref.current!.children || []);
-    const startIndex = childrenArray.findIndex(
-      (child) => child === selection!.getRangeAt(0).startContainer || child.contains(selection!.getRangeAt(0).startContainer)
-    );
-
-    const childrenArray0 = Array.from(childrenArray[startIndex].children || []);
-    const startIndex0 = childrenArray.findIndex(
-      (child) => child === selection!.getRangeAt(0).startContainer || child.contains(selection!.getRangeAt(0).startContainer)
-    );
 
     const styleDef: style = {
-      color: 'white',
+      color: 'default',
       size: undefined,
       bold: false,
       italic: false,
@@ -56,6 +81,14 @@ export default function Test() {
 
     if (selection  && ref.current) {
       const range = selection.getRangeAt(0);
+      const startContainer = range.startContainer;
+      const endContainer = range.endContainer;
+
+      let container = startContainer as HTMLElement;
+      while (container && container.tagName !== "DIV") {
+        container = container.parentElement!;
+      }
+
       const newSetStyle: ITextFunctions = {
         style: {},
         defaults: styleDef,
@@ -66,31 +99,77 @@ export default function Test() {
   
       if (e.key === "Enter") {
         e.preventDefault();
-        const currentStyle = toStyle(selection.anchorNode?.parentElement?.style)
-        // selection!.getRangeAt(0)
-
-        const newLine = document.createElement('div')
-        const newBlock = document.createElement("span");
-        newBlock.innerText = "\n"
-        newBlock.setAttribute('style', styleToString(currentStyle)!)
-
-        if (startIndex < childrenArray.length-1)
-          ref.current.insertBefore(newLine, ref.current.children[startIndex + 1])
-        else
-          ref.current.insertBefore(newLine, null)
-
-        range.setStart(newLine, 0);
-        range.setEnd(newLine, 0);
-        selection.removeAllRanges();
-        selection.addRange(range);
+        let currentStyle = styleDef
 
         range.deleteContents();
-        range.insertNode(newBlock);
 
-        range.setStart(newBlock, 0);
-        range.setEnd(newBlock, 0);
-        selection.removeAllRanges();
-        selection.addRange(range);
+        const spans = Array.from(container.children) as HTMLSpanElement[];
+
+        // Find the start and end spans
+        const startIndex = spans.findIndex((span) => span.contains(startContainer));
+        const endIndex = spans.findIndex((span) => span.contains(endContainer));
+
+        if(startIndex === spans.length - 1 && range.startOffset === spans[startIndex].textContent?.length){
+          const newLine = document.createElement('div')
+          const newBlock = document.createElement("span");
+          newBlock.innerText = "\n"
+          const childrenArray = Array.from(ref.current.children || []);
+
+          const index = childrenArray.findIndex(
+            (child) => child === range.startContainer || child.contains(range.startContainer)
+          );
+
+          currentStyle = toStyle(spans[endIndex].style)!
+          newBlock.setAttribute('style', styleToString(currentStyle)!)
+
+          if (index < childrenArray.length-1)
+            ref.current.insertBefore(newLine, ref.current.children[index + 1])
+          else
+            ref.current.insertBefore(newLine, null)
+
+          range.setStart(newLine, 0);
+          range.setEnd(newLine, 0);
+          selection.removeAllRanges();
+          selection.addRange(range);
+
+          range.deleteContents();
+          range.insertNode(newBlock);
+
+          range.setStart(newBlock, 0);
+          range.setEnd(newBlock, 0);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+        else {
+          const newContainer = document.createElement("div");
+
+          // Split the text inside the start span
+          const startSpan = spans[startIndex];
+          const startText = startSpan.textContent!;
+          const startOffset = range.startOffset;
+          const firstPart = startText.slice(0, startOffset); // Before split
+          const secondPart = startText.slice(startOffset); // After split
+
+          startSpan.textContent = firstPart; // Keep the first part in the original span
+
+          if (secondPart) {
+            const splitSpan = document.createElement("span");
+            splitSpan.textContent = secondPart;
+            currentStyle = toStyle(spans[startIndex].style)!
+            splitSpan.setAttribute('style', styleToString(currentStyle)!)
+            newContainer.appendChild(splitSpan); // Move second part to the new div
+          }
+
+          // Move all spans **after** the split point into the new div
+          for (let i = startIndex + 1; i < spans.length; i++) {
+            newContainer.appendChild(spans[i]);
+          }
+
+          container.after(newContainer);
+
+          range.setStartBefore(newContainer.childNodes[0])
+          range.setEndBefore(newContainer.childNodes[0])
+        }
       }
 
       if (e.code == 'KeyB' && e.ctrlKey) {
@@ -136,6 +215,7 @@ export default function Test() {
       tabindex={0}
       ref={ref}
       onKeyDown={(e) => {pBlock(e)}}
+      onKeyUp={(e) => {keyUp(e)}}
       onInput={(e) => {
         text.value = e.currentTarget.innerHTML || "";
       }}
@@ -247,7 +327,6 @@ function setStyle(props: ITextFunctions) {
       const newNodes: HTMLSpanElement[] = loop(cArray)
 
       if (index === 0) {
-        
         range.selectNodeContents(childrenArray[startIndex + index]);
         range.collapse(false);
       }

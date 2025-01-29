@@ -68,9 +68,11 @@ export const cleanUpNode = (
     }
 };
 
-export function detectStyleChange(current: style, newStyle: style, attr: string): boolean {
+export function detectStyleChange(current: style, newStyle: style, attr?: string): boolean {
     const arr = ["color", "size", "bold", "italic", "underline", "strike"]
-    arr.splice(arr.indexOf(attr), 1)
+    
+    if(attr)
+      arr.splice(arr.indexOf(attr), 1)
 
     const styleKeys: (keyof style)[] = arr;
     return styleKeys.some((key) => current[key] !== newStyle[key]);
