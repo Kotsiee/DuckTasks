@@ -1,34 +1,21 @@
 import { createElement } from "https://esm.sh/v128/preact@10.22.0/src/index.js";
 import { useSignal } from "https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js";
 import { useRef, useEffect } from 'preact/hooks';
-import { cleanUpNode, detectStyleChange, style, styleToString, styleToTag, toStyle } from "../lib/utils/tbstyle.ts";
-import { rangeIntersects } from "$std/semver/range_intersects.ts";
-import { copySync } from "$std/fs/copy.ts";
+import { detectStyleChange, style, styleToString, toStyle } from "../lib/utils/tbstyle.ts";
 
 interface ITextFunctions {
   style: style;
   defaults: style;
   type: 'color' | 'size' | 'bold' | 'italic' | 'underline' | 'strike';
-  range: Range;
   selection: Selection;
-  childrenArray: Element[];
-
-  startIndex: number;
-  startElement: HTMLElement;
-  startContainer: Node;
-  startOffset: number;
-
-  endIndex: number;
-  endElement: HTMLElement;
-  endContainer: Node;
-  endOffset: number;
+  ref: HTMLDivElement
 }
 
 export default function Test() {
   const text = useSignal<string>(`
-        <div class="soc"><span style="color: white">123</span></div>
         <div class="soc"><span style="color: white">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span></div>
-        <div class="soc"><span style="color: white">123456789</span><span style="color: cyan">123456789</span></div>
+        <div class="soc"><span style="color: white">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span></div>
+        <div class="soc"><span style="color: white">123456789</span><span style="color: cyan; font-weight: bold">123456789</span><span style="color: purple">123456789</span></div>
         <div class="soc">
           <span style="color: white">hello? </span>
           <span style="color: rebeccapurple">it's me </span>
@@ -48,8 +35,15 @@ export default function Test() {
 
   const pBlock = (e: createElement.JSX.TargetedKeyboardEvent<HTMLDivElement>) => {
     const selection = globalThis.getSelection();
-    const nodeArray = Array.from(ref.current?.childNodes || []);
-    const childrenArray = Array.from(ref.current?.children || []);
+    const childrenArray = Array.from(ref.current!.children || []);
+    const startIndex = childrenArray.findIndex(
+      (child) => child === selection!.getRangeAt(0).startContainer || child.contains(selection!.getRangeAt(0).startContainer)
+    );
+
+    const childrenArray0 = Array.from(childrenArray[startIndex].children || []);
+    const startIndex0 = childrenArray.findIndex(
+      (child) => child === selection!.getRangeAt(0).startContainer || child.contains(selection!.getRangeAt(0).startContainer)
+    );
 
     const styleDef: style = {
       color: 'white',
@@ -60,59 +54,30 @@ export default function Test() {
       strike: false,
     }
 
-    const newStyle: style = {
-      color: 'pink',
-      size: undefined,
-      bold: false,
-      italic: false,
-      underline: false,
-      strike: false,
-    }
-
-    const keyPattern = new RegExp(/(Digit[0-9]|Numpad[0-9])|(Key[a-zA-Z])|(Bracket|Slash|slash|colon|Quote|quote|Comma|Period|Minus|Equal)/g)
-    // console.log(keyPattern.test(e.code), e.code, e.key, e.metaKey)
-
     if (selection  && ref.current) {
       const range = selection.getRangeAt(0);
-      const startContainer = range.startContainer;
-      const endContainer = range.endContainer;
-
-      const startIndex = childrenArray.findIndex(
-        (child) => child === startContainer || child.contains(startContainer)
-      );
-      
-      const endIndex = childrenArray.findIndex(
-        (child) => child === endContainer || child.contains(endContainer)
-      );
-
       const newSetStyle: ITextFunctions = {
         style: {},
         defaults: styleDef,
         type: "color",
-        range: range,
         selection: selection,
-        childrenArray: childrenArray,
-        startIndex: startIndex,
-        startElement: startContainer.parentElement!,
-        startContainer: startContainer,
-        startOffset: findI(ref.current, startContainer, ref.current, range.startOffset, [])!,
-        endIndex: endIndex,
-        endElement: endContainer.parentElement!,
-        endContainer: endContainer,
-        endOffset: findI(ref.current, endContainer, ref.current, range.endOffset, [])!
+        ref: ref.current
       }
   
       if (e.key === "Enter") {
         e.preventDefault();
-
         const currentStyle = toStyle(selection.anchorNode?.parentElement?.style)
+        // selection!.getRangeAt(0)
 
         const newLine = document.createElement('div')
         const newBlock = document.createElement("span");
         newBlock.innerText = "\n"
         newBlock.setAttribute('style', styleToString(currentStyle)!)
 
-        ref.current?.appendChild(newLine)
+        if (startIndex < childrenArray.length-1)
+          ref.current.insertBefore(newLine, ref.current.children[startIndex + 1])
+        else
+          ref.current.insertBefore(newLine, null)
 
         range.setStart(newLine, 0);
         range.setEnd(newLine, 0);
@@ -187,258 +152,141 @@ export default function Test() {
 }
 
 function setStyle(props: ITextFunctions) {
-  const { startIndex, endIndex, childrenArray, style, defaults, startElement, endElement, range, selection } =
-    props;
+  const { style, selection, type, ref } = props;
+
+  const range = selection.getRangeAt(0);
+  const childrenArray = Array.from(ref.children || []);
+
+  const startIndex = childrenArray.findIndex(
+    (child) => child === range.startContainer || child.contains(range.startContainer)
+  );
+  
+  const endIndex = childrenArray.findIndex(
+    (child) => child === range.endContainer || child.contains(range.endContainer)
+  );
+
+  let currentStyle = style
+  if (toStyle(range.startContainer.parentElement?.style)![type as keyof style] === style[type as keyof style] &&
+  toStyle(range.endContainer.parentElement?.style)![type as keyof style] === style[type as keyof style])
+    currentStyle[type as keyof style] = props.defaults[type as keyof style]
+
+  const extracted = range.extractContents()
+  const pArray = Array.from(extracted.children || []) as HTMLElement[];
+  
+  const loop = (pArray: HTMLElement[]) => {
+    let currentNode = document.createElement('span')
+    const newNodes: HTMLSpanElement[] = []
+
+    pArray.forEach((item, index) => {
+      const thisStyle = toStyle(item.style)!
+      thisStyle[type as keyof style] = style[type as keyof style]
+      
+      if(index === 0) {
+        if(detectStyleChange(currentStyle, thisStyle, props.type)) currentStyle = thisStyle
+
+        currentNode.setAttribute('style', styleToString(currentStyle)!)
+        currentNode.textContent += item.textContent!
+      }
+      else if(index === pArray.length - 1) {
+        if(detectStyleChange(currentStyle, thisStyle, props.type)){
+          currentStyle = thisStyle
+          newNodes.push(currentNode)
+
+          currentNode = document.createElement('span')
+          currentNode.setAttribute('style', styleToString(currentStyle)!)
+        }
+
+        currentNode.textContent += item.textContent!
+        newNodes.push(currentNode)
+      }
+      else {
+        if(detectStyleChange(currentStyle, thisStyle, props.type)){
+          currentStyle = thisStyle
+          newNodes.push(currentNode)
+
+          currentNode = document.createElement('span')
+          currentNode.setAttribute('style', styleToString(currentStyle)!)
+        }
+
+        currentNode.textContent += item.textContent!
+      }
+    })
+
+    return newNodes
+  }
 
   // Case 1: Style is applied within a single element
-  if (startIndex === endIndex) {
-    const cArray = Array.from(range.extractContents().children || []) as HTMLElement[];
-   let currentStyle = style
+  if (startIndex === endIndex) {   
+    const currentNode = document.createElement('span')
 
-   let currentNode = document.createElement('span')
-   const newNodes: HTMLSpanElement[] = []
+    if (pArray.length > 0) {
+      const newNodes: HTMLSpanElement[] = loop(pArray)
 
-   cArray.forEach((item, index) => {
-    const thisStyle = toStyle(item.style)!
-    thisStyle[props.type as keyof style] = style[props.type as keyof style]
-    
-    if(index === 0) {
-      if(detectStyleChange(currentStyle, thisStyle, props.type)) currentStyle = thisStyle
+      range.deleteContents();
+      newNodes.forEach((node) => {
+        range.insertNode(node);
+        range.setStartAfter(node);
+        range.setEndAfter(node);
+      });
 
-      currentNode.setAttribute('style', styleToString(currentStyle)!)
-      currentNode.textContent += item.textContent!
-    }
-    else if(index === cArray.length - 1) {
-      if(detectStyleChange(currentStyle, thisStyle, props.type)){
-        currentStyle = thisStyle
-        newNodes.push(currentNode)
-
-        currentNode = document.createElement('span')
-        currentNode.setAttribute('style', styleToString(currentStyle)!)
-      }
-
-      currentNode.textContent += item.textContent!
-      newNodes.push(currentNode)
+      selection.removeAllRanges();
+      selection.addRange(range);
     }
     else {
-      if(detectStyleChange(currentStyle, thisStyle, props.type)){
-        currentStyle = thisStyle
-        newNodes.push(currentNode)
-
-        currentNode = document.createElement('span')
-        currentNode.setAttribute('style', styleToString(currentStyle)!)
-      }
-
-      currentNode.textContent += item.textContent!
+      currentNode.textContent = extracted.textContent
+      const newStyle = toStyle(range.startContainer.parentElement?.style)!
+      newStyle[type as keyof style] = currentStyle[type as keyof style]
+      currentNode.setAttribute('style', styleToString(newStyle)!)
+      range.insertNode(currentNode);
     }
-   })
-
-   range.deleteContents();
-   newNodes.forEach(item => {
-    props.range.insertNode(item)
-
-    range.setStart(item, item.textContent!.length-1);
-    range.setEnd(item, item.textContent!.length-1);
-    selection.removeAllRanges();
-    selection.addRange(range);
-  })
-
-    // container.innerHTML = loop(startI, endI, cArray, container, props.range.startOffset, props.startOffset, props.range.endOffset, props.endOffset, toStyle(endElement.style)!)
   }
   else {
+    pArray.forEach((container, index) => {
+      const childrenArray = Array.from(ref.children || []);
+      const cArray = Array.from(container.children || []) as HTMLElement[];
+      const newNodes: HTMLSpanElement[] = loop(cArray)
+
+      if (index === 0) {
+        
+        range.selectNodeContents(childrenArray[startIndex + index]);
+        range.collapse(false);
+      }
+      else if (index === pArray.length - 1){
+        range.selectNodeContents(childrenArray[startIndex + index]);
+        range.setStart(childrenArray[startIndex + index], 0);
+        range.setEnd(childrenArray[startIndex + index], 0);
+        range.collapse(false);
+      }
+      else {
+        const ind = startIndex + index - 1
+        range.selectNodeContents(childrenArray[ind]);
+        range.setStartAfter(childrenArray[ind]);
+        range.setEndAfter(childrenArray[ind]);
+
+        const newDiv = document.createElement('div')
+        range.insertNode(newDiv);
+        range.selectNodeContents(newDiv);
+        range.collapse(false);
+      }
+
+      if(cArray.length > 1)
+        newNodes.forEach((node) => {
+          range.insertNode(node);
+          range.setStartAfter(node);
+          range.setEndAfter(node);
+        });
+      else {
+        const currentNode = document.createElement('span')
+        currentNode.textContent = container.textContent
+        currentNode.setAttribute('style', styleToString(currentStyle)!)
+        range.insertNode(currentNode);
+      }
+
+      selection.removeAllRanges();
+      selection.addRange(range);
+    })
   }
 }
-
-// function setStyle(props: ITextFunctions) {
-//   const { startIndex, endIndex, childrenArray, style, defaults, startElement, endElement } =
-//     props;
-
-//   const loop = (startI: number, endI: number, cArray: Element[], container: Element, rso: number, so: number, reo: number, eo: number, endStyle: style, pos?: string): string => {
-//     let currentStyle = style
-//     let currentHTML = ''
-
-//     for (let index = startI; index <= endI; index++) {
-//       const newContainer = cArray[index] as HTMLElement
-//       const newStyle = toStyle(newContainer?.style)!
-//       newStyle[props.type as keyof style] = style[props.type as keyof style];
-//       let resultHtml = '';
-
-//       if (index == startI) {
-//         if(detectStyleChange(currentStyle, newStyle, props.type)) currentStyle = newStyle
-
-//         const txtStart = newContainer.textContent!.slice(0, rso);
-//         const txtMid = newContainer.textContent!.slice(rso);
-//         const startHtml = container.innerHTML!.slice(0, findIndex(container, so)! - txtStart.length);
-
-//         resultHtml = startHtml + txtStart + '</span>' + styleToTag(currentStyle) + txtMid;
-//         currentHTML = resultHtml
-//       }
-//       else if (index == endI) {
-//         if(detectStyleChange(currentStyle, newStyle, props.type)){
-//           currentStyle = newStyle
-//           resultHtml = '</span>' + styleToTag(currentStyle)
-//         }
-
-//         const txtStart = newContainer.textContent!.slice(0, reo);
-//         const txtEnd = newContainer.textContent!.slice(reo);
-//         const endHtml = pos == 'start' ? '</span></div>' : container.innerHTML!.slice(findIndex(container, eo)! + txtEnd.length);
-//         resultHtml += txtStart + '</span>' + styleToTag(endStyle) + txtEnd + endHtml;
-//         currentHTML += resultHtml
-//       }
-//       else {
-//         if(detectStyleChange(currentStyle, newStyle, props.type)){
-//           currentStyle = newStyle
-//           resultHtml = '</span>' + styleToTag(currentStyle)
-//         }
-
-//         resultHtml += newContainer.textContent;
-//         currentHTML += resultHtml
-//       }
-//     }
-//     return currentHTML
-//   }
-
-//   // Case 1: Style is applied within a single element
-//   if (startIndex === endIndex) {
-//     const container = childrenArray[startIndex];
-//     const cArray = Array.from(container.children || []);
-
-//     const startI = cArray.findIndex(
-//       (child) => child === props.startContainer || child.contains(props.startContainer)
-//     );
-    
-//     const endI = cArray.findIndex(
-//       (child) => child === props.endContainer || child.contains(props.endContainer)
-//     );
-
-//     container.innerHTML = loop(startI, endI, cArray, container, props.range.startOffset, props.startOffset, props.range.endOffset, props.endOffset, toStyle(endElement.style)!)
-//   }
-//   else {
-//     // Case 2: Style spans across multiple elements
-//     for (let index = startIndex; index <= endIndex; index++) {
-//       const container = childrenArray[index];
-//       const cArray = Array.from(container.children || []);
-//       let resultHtml = '';
-
-//       const startI = cArray.findIndex(
-//         (child) => child === props.startContainer || child.contains(props.startContainer)
-//       );
-      
-//       const endI = cArray.findIndex(
-//         (child) => child === props.endContainer || child.contains(props.endContainer)
-//       );
-
-//       if (index === startIndex) {
-//         resultHtml = loop(startI, cArray.length - 1, cArray, container, props.range.startOffset, props.startOffset, cArray.length, container.textContent!.length, style, 'start');
-//       } else if (index === endIndex) {
-//         resultHtml = loop(0, endI, cArray, container, 0, 0, props.range.endOffset, props.endOffset, toStyle(endElement.style)!);
-//       } else {
-//         resultHtml = loop(0, cArray.length - 1, cArray, container, 0, 0, cArray.length, container.textContent!.length, style, 'start');
-//       }
-      
-//       console.log(resultHtml)
-//       container.innerHTML = resultHtml
-//     }
-//   }
-// }
-
-function count(history: number[], container: Node): number {
-  let totalCount = 0;
-
-  function traverse(node: Node, depth: number): void {
-    if (depth >= history.length) {
-      return;
-    }
-
-    const index = history[depth];
-    const childNodes = Array.from(node.childNodes);
-
-    for (let i = 0; i < childNodes.length; i++) {
-      const child = childNodes[i];
-
-      if (i < index){
-        totalCount += child.textContent?.length || 0
-      }
-      else if (i === index) {
-        traverse(child, depth + 1);
-      }
-    }
-  }
-
-  traverse(container, 0);
-  return totalCount;
-}
-
-const findI = (pArray: Node, node: Node, parent: Node, pos: number, history?: number[]): number | null => {
-  const cArray = Array.from(pArray.childNodes || []);
-  let cnt: number | null = null;
-
-  for (let i = 0; i < cArray.length; i++) {
-    const cNode = cArray[i];
-
-    if (cNode === node) {
-      history?.push(i);
-
-      if (history) {
-        if (history.length >= 1 && history[1] > 0) {
-          const h = history.slice(1);
-          cnt = count(h, parent.childNodes[history[0]]) + pos;
-
-          return cnt;
-        }
-        else{
-          return pos
-        }
-      }
-
-      return i;
-    }
-    if (cNode.contains(node)) {
-      history?.push(i);
-      const childIndex = findI(cNode, node, parent, pos, history);
-
-      if (childIndex !== null && childIndex > 0) {
-        return childIndex; // Updated to return the correct childIndex instead of "i"
-      }
-    }
-  }
-
-  return cnt ? cnt : null;
-};
-
-function findIndex(
-  element: Element,
-  textContentIndex: number
-): number | null {
-  const textContent = element.textContent;
-  const innerHTML = element.innerHTML;
-
-  if (!textContent || textContentIndex < 0 || textContentIndex >= textContent.length) {
-    return null; // Invalid input or out of bounds
-  }
-
-  let textIndex = 0; // Index for textContent traversal
-  let htmlIndex = 0; // Index for innerHTML traversal
-
-  // Traverse innerHTML while matching textContent
-  while (htmlIndex < innerHTML.length) {
-    const htmlChar = innerHTML[htmlIndex];
-
-    // If the current HTML character is part of the visible text
-    if (htmlChar === textContent[textIndex]) {
-      if (textIndex === textContentIndex) {
-        return htmlIndex; // Found the corresponding index
-      }
-      textIndex++;
-    }
-
-    htmlIndex++;
-  }
-
-  return null; // Not found
-}
-
-
 
 type HtmlNode = {
   tag: string; // Tag name
