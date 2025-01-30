@@ -13,7 +13,7 @@ interface ITextFunctions {
 
 export default function Test() {
   const text = useSignal<string>(`
-        <div><span style="color: default">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span></div>
+        <div><span style="color: default">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span><span style="color: yellow">67890</span><span style="color: yellow">67890</span></div>
         <div><span style="color: default">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span></div>
         <div><span style="color: default">123456789</span><span style="color: cyan; font-weight: bold">123456789</span><span style="color: purple">123456789</span></div>
         <div>
@@ -33,11 +33,142 @@ export default function Test() {
     ref.current!.innerHTML = text.value;
   }, []);
 
+  const applyTextStyle = (type: ITextFunctions["type"], value: boolean) => {
+    const selection = globalThis.getSelection();
+    if (!selection || !ref.current) return;
+
+    const range = selection.getRangeAt(0);
+    if (range.cloneContents().textContent?.length === 0)
+    {
+      const newSpan = document.createElement('span')
+      const style: style = toStyle(selection.anchorNode?.parentElement?.style)!
+      style[type as keyof style] = value
+      newSpan.setAttribute('style', styleToString(style))
+      newSpan.textContent = '\ '
+
+      range.insertNode(newSpan)
+    }
+    else {
+      if (range.collapsed) return;
+  
+      const style: style = {}
+      style[type as keyof style] = value
+  
+      const styleDef: style = {
+        color: 'default',
+        size: undefined,
+        bold: false,
+        italic: false,
+        underline: false,
+        strike: false,
+      }
+  
+      const props: ITextFunctions = {
+        style: style,
+        defaults: styleDef,
+        type: type,
+        selection: selection,
+        ref: ref.current
+      }
+  
+      setStyle(props)
+    }
+  };
+
+  const handleEnterKey = (e: KeyboardEvent) => {
+    if (!ref.current) return;
+    const selection = globalThis.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+  
+    const range = selection.getRangeAt(0);
+    const startContainer = range.startContainer;
+    let currentBlock = startContainer as HTMLElement;
+  
+    // Find the parent div block
+    while (currentBlock && currentBlock.tagName !== "DIV") {
+      currentBlock = currentBlock.parentElement!;
+    }
+  
+    if (!currentBlock) return;
+  
+    e.preventDefault();
+  
+    const spans = Array.from(currentBlock.children) as HTMLSpanElement[];
+    const startIndex = spans.findIndex((span) => span.contains(startContainer));
+  
+    // Detect if at the end of the line
+    if (
+      startIndex === spans.length - 1 &&
+      range.startOffset === spans[startIndex].textContent?.length
+    ) {
+      const newLine = document.createElement("div");
+      const newBlock = document.createElement("span");
+      newBlock.innerText = "\u200B"; // Zero-width space to maintain cursor position
+  
+      const childrenArray = Array.from(ref.current.children || []);
+      const index = childrenArray.findIndex(
+        (child) => child === range.startContainer || child.contains(range.startContainer)
+      );
+  
+      const currentStyle = toStyle(spans[startIndex].style) || {};
+      newBlock.setAttribute("style", styleToString(currentStyle)!);
+  
+      // Insert new line after the current block
+      if (index < childrenArray.length - 1) {
+        ref.current.insertBefore(newLine, ref.current.children[index + 1]);
+      } else {
+        ref.current.appendChild(newLine);
+      }
+  
+      newLine.appendChild(newBlock);
+  
+      // Move cursor to new line
+      range.setStart(newBlock, 0);
+      range.setEnd(newBlock, 0);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    } else {
+      // Split the line at cursor position
+      const newContainer = document.createElement("div");
+  
+      // Get current span and text parts
+      const startSpan = spans[startIndex];
+      const startText = startSpan.textContent!;
+      const startOffset = range.startOffset;
+  
+      const firstPart = startText.slice(0, startOffset); // Before split
+      const secondPart = startText.slice(startOffset); // After split
+  
+      startSpan.textContent = firstPart; // Keep first part in original span
+  
+      if (secondPart) {
+        const splitSpan = document.createElement("span");
+        splitSpan.textContent = secondPart;
+        const currentStyle = toStyle(startSpan.style) || {};
+        splitSpan.setAttribute("style", styleToString(currentStyle)!);
+        newContainer.appendChild(splitSpan);
+      }
+  
+      // Move all spans **after** the split point into the new div
+      for (let i = startIndex + 1; i < spans.length; i++) {
+        newContainer.appendChild(spans[i]);
+      }
+  
+      // Insert the new div block after current
+      currentBlock.after(newContainer);
+  
+      // Move cursor to new line
+      range.setStartBefore(newContainer.childNodes[0]);
+      range.setEndBefore(newContainer.childNodes[0]);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  };
+
   const keyUp = (e: createElement.JSX.TargetedKeyboardEvent<HTMLDivElement>) => {
     const selection = globalThis.getSelection();
     const range = selection!.getRangeAt(0);
     const startContainer = range.startContainer;
-    const endContainer = range.endContainer;
 
     let container = startContainer as HTMLElement;
     while (container && container.tagName !== "DIV") {
@@ -51,7 +182,6 @@ export default function Test() {
       range.setStart(startContainer, range.startOffset)
       range.setEnd(startContainer, range.startOffset)
 
-
       if (spans[index] && spans[index + 1]) {
         if(!detectStyleChange(toStyle(spans[index].style)!, toStyle(spans[index + 1].style)!)) {
           const newNode = document.createElement('span')
@@ -59,149 +189,53 @@ export default function Test() {
           newNode.setAttribute('style', styleToString(toStyle(spans[index].style))!)
           container.replaceChild(newNode, spans[index])
           container.removeChild(spans[index + 1])
-
-          range.setStart(startContainer, spans[index].textContent!.length)
-          range.setEnd(startContainer, spans[index].textContent!.length)
+          
+          const childrenArray = Array.from(container.children || []);
+          range.selectNodeContents(childrenArray[index]);
+          range.setStart(childrenArray[index].childNodes[0], spans[index].textContent!.length)
+          range.setEnd(childrenArray[index].childNodes[0], spans[index].textContent!.length)
+          range.collapse(false);
         }
       }
     }
   }
 
-  const pBlock = (e: createElement.JSX.TargetedKeyboardEvent<HTMLDivElement>) => {
+  const keyDown = (e: createElement.JSX.TargetedKeyboardEvent<HTMLDivElement>) => {
     const selection = globalThis.getSelection();
 
-    const styleDef: style = {
-      color: 'default',
-      size: undefined,
-      bold: false,
-      italic: false,
-      underline: false,
-      strike: false,
-    }
-
-    if (selection  && ref.current) {
-      const range = selection.getRangeAt(0);
-      const startContainer = range.startContainer;
-      const endContainer = range.endContainer;
-
-      let container = startContainer as HTMLElement;
-      while (container && container.tagName !== "DIV") {
-        container = container.parentElement!;
-      }
-
-      const newSetStyle: ITextFunctions = {
-        style: {},
-        defaults: styleDef,
-        type: "color",
-        selection: selection,
-        ref: ref.current
-      }
-  
+    if (selection  && ref.current) {  
       if (e.key === "Enter") {
-        e.preventDefault();
-        let currentStyle = styleDef
+        handleEnterKey(e);
+        return;
+      }
 
-        range.deleteContents();
-
-        const spans = Array.from(container.children) as HTMLSpanElement[];
-
-        // Find the start and end spans
-        const startIndex = spans.findIndex((span) => span.contains(startContainer));
-        const endIndex = spans.findIndex((span) => span.contains(endContainer));
-
-        if(startIndex === spans.length - 1 && range.startOffset === spans[startIndex].textContent?.length){
-          const newLine = document.createElement('div')
-          const newBlock = document.createElement("span");
-          newBlock.innerText = "\n"
-          const childrenArray = Array.from(ref.current.children || []);
-
-          const index = childrenArray.findIndex(
-            (child) => child === range.startContainer || child.contains(range.startContainer)
-          );
-
-          currentStyle = toStyle(spans[endIndex].style)!
-          newBlock.setAttribute('style', styleToString(currentStyle)!)
-
-          if (index < childrenArray.length-1)
-            ref.current.insertBefore(newLine, ref.current.children[index + 1])
-          else
-            ref.current.insertBefore(newLine, null)
-
-          range.setStart(newLine, 0);
-          range.setEnd(newLine, 0);
-          selection.removeAllRanges();
-          selection.addRange(range);
-
-          range.deleteContents();
-          range.insertNode(newBlock);
-
-          range.setStart(newBlock, 0);
-          range.setEnd(newBlock, 0);
-          selection.removeAllRanges();
-          selection.addRange(range);
+      if (e.ctrlKey) {
+        let handled = false; // Track if a shortcut was processed
+    
+        switch (e.code) {
+          case "KeyB":
+            applyTextStyle("bold", true);
+            handled = true;
+            break;
+          case "KeyI":
+            applyTextStyle("italic", true);
+            handled = true;
+            break;
+          case "KeyU":
+            applyTextStyle("underline", true);
+            handled = true;
+            break;
+          case "KeyQ":
+            applyTextStyle("strike", true);
+            handled = true;
+            break;
         }
-        else {
-          const newContainer = document.createElement("div");
-
-          // Split the text inside the start span
-          const startSpan = spans[startIndex];
-          const startText = startSpan.textContent!;
-          const startOffset = range.startOffset;
-          const firstPart = startText.slice(0, startOffset); // Before split
-          const secondPart = startText.slice(startOffset); // After split
-
-          startSpan.textContent = firstPart; // Keep the first part in the original span
-
-          if (secondPart) {
-            const splitSpan = document.createElement("span");
-            splitSpan.textContent = secondPart;
-            currentStyle = toStyle(spans[startIndex].style)!
-            splitSpan.setAttribute('style', styleToString(currentStyle)!)
-            newContainer.appendChild(splitSpan); // Move second part to the new div
-          }
-
-          // Move all spans **after** the split point into the new div
-          for (let i = startIndex + 1; i < spans.length; i++) {
-            newContainer.appendChild(spans[i]);
-          }
-
-          container.after(newContainer);
-
-          range.setStartBefore(newContainer.childNodes[0])
-          range.setEndBefore(newContainer.childNodes[0])
+    
+        // Only prevent default if a shortcut was processed
+        if (handled) {
+          e.preventDefault();
         }
-      }
-
-      if (e.code == 'KeyB' && e.ctrlKey) {
-        e.preventDefault();
-
-        newSetStyle.type = "bold"
-        newSetStyle.style.bold = true
-        setStyle({...newSetStyle})
-      }
-
-      if (e.code == 'KeyI' && e.ctrlKey) {
-        e.preventDefault();
-
-        newSetStyle.type = "italic"
-        newSetStyle.style.italic = true
-        setStyle({...newSetStyle})
-      }
-
-      if (e.code == 'KeyU' && e.ctrlKey) {
-        e.preventDefault();
-
-        newSetStyle.type = "underline"
-        newSetStyle.style.underline = true
-        setStyle({...newSetStyle})
-      }
-
-      if (e.code == 'KeyQ' && e.ctrlKey) {
-        e.preventDefault();
-
-        newSetStyle.type = "strike"
-        newSetStyle.style.strike = true
-        setStyle({...newSetStyle})
+        else cleanupEmptyNodes(ref.current)
       }
 
     }
@@ -214,7 +248,7 @@ export default function Test() {
       contentEditable={true}
       tabindex={0}
       ref={ref}
-      onKeyDown={(e) => {pBlock(e)}}
+      onKeyDown={(e) => {keyDown(e)}}
       onKeyUp={(e) => {keyUp(e)}}
       onInput={(e) => {
         text.value = e.currentTarget.innerHTML || "";
@@ -231,24 +265,28 @@ export default function Test() {
   );
 }
 
+
 function setStyle(props: ITextFunctions) {
-  const { style, selection, type, ref } = props;
+  const { style, type, ref } = props;
+  let { selection } = props;
 
+  const childrenArray = Array.from(ref.children || []) as HTMLElement[];
+
+  selection = document.getSelection()!
   const range = selection.getRangeAt(0);
-  const childrenArray = Array.from(ref.children || []);
 
-  const startIndex = childrenArray.findIndex(
-    (child) => child === range.startContainer || child.contains(range.startContainer)
-  );
-  
-  const endIndex = childrenArray.findIndex(
-    (child) => child === range.endContainer || child.contains(range.endContainer)
-  );
+  const { endOffset } = range
+
+  let startIndex = childrenArray.findIndex((child) => child === range.startContainer || child.contains(range.startContainer));
+  let endIndex = childrenArray.findIndex((child) => child === range.endContainer || child.contains(range.endContainer));
 
   let currentStyle = style
   if (toStyle(range.startContainer.parentElement?.style)![type as keyof style] === style[type as keyof style] &&
   toStyle(range.endContainer.parentElement?.style)![type as keyof style] === style[type as keyof style])
     currentStyle[type as keyof style] = props.defaults[type as keyof style]
+
+  let startNode: HTMLElement;
+  let endNode: HTMLElement;
 
   const extracted = range.extractContents()
   const pArray = Array.from(extracted.children || []) as HTMLElement[];
@@ -297,10 +335,11 @@ function setStyle(props: ITextFunctions) {
 
   // Case 1: Style is applied within a single element
   if (startIndex === endIndex) {   
-    const currentNode = document.createElement('span')
+    let currentNode;
+    let newNodes: HTMLSpanElement[] = [];
 
     if (pArray.length > 0) {
-      const newNodes: HTMLSpanElement[] = loop(pArray)
+      newNodes = loop(pArray)
 
       range.deleteContents();
       newNodes.forEach((node) => {
@@ -313,18 +352,23 @@ function setStyle(props: ITextFunctions) {
       selection.addRange(range);
     }
     else {
+      currentNode = document.createElement('span')
       currentNode.textContent = extracted.textContent
       const newStyle = toStyle(range.startContainer.parentElement?.style)!
       newStyle[type as keyof style] = currentStyle[type as keyof style]
       currentNode.setAttribute('style', styleToString(newStyle)!)
       range.insertNode(currentNode);
     }
+
+    startNode = currentNode ? currentNode : newNodes[0]
+    endNode = currentNode ? currentNode : newNodes[newNodes.length-1]
   }
   else {
     pArray.forEach((container, index) => {
       const childrenArray = Array.from(ref.children || []);
       const cArray = Array.from(container.children || []) as HTMLElement[];
       const newNodes: HTMLSpanElement[] = loop(cArray)
+      let currentNode;
 
       if (index === 0) {
         range.selectNodeContents(childrenArray[startIndex + index]);
@@ -355,74 +399,67 @@ function setStyle(props: ITextFunctions) {
           range.setEndAfter(node);
         });
       else {
-        const currentNode = document.createElement('span')
+        currentNode = document.createElement('span')
         currentNode.textContent = container.textContent
         currentNode.setAttribute('style', styleToString(currentStyle)!)
         range.insertNode(currentNode);
       }
 
+      if (index === 0) startNode = currentNode ? currentNode : newNodes[0]
+      if (index === pArray.length - 1) endNode = currentNode ? currentNode : newNodes[newNodes.length-1]
+
       selection.removeAllRanges();
       selection.addRange(range);
     })
   }
+
+  const startArray = Array.from(childrenArray[startIndex].children || []) as HTMLElement[];
+  const endArray = Array.from(childrenArray[endIndex].children || []) as HTMLElement[];
+
+  startIndex = startArray.findIndex((child) => child === startNode || child.contains(startNode));
+  endIndex = endArray.findIndex((child) => child === endNode || child.contains(endNode));
+
+  range.setStart(startNode!.childNodes[0], 0)
+  range.setEnd(endNode!.childNodes[0], endOffset)
+  selection.removeAllRanges();
+  selection.addRange(range);
+
+  cleanupEmptyNodes(ref)
+  cleanup(childrenArray)
 }
 
-type HtmlNode = {
-  tag: string; // Tag name
-  attributes: { [key: string]: string }; // Attributes as key-value pairs
-  children: HtmlNode[]; // Child nodes
-  content?: string; // Optional text content
-};
+function cleanup(childrenArray: HTMLElement[]) {
+  childrenArray.forEach((child) => {
 
-function htmlToJson(element: Element): HtmlNode {
-  const node: HtmlNode = {
-      tag: element.tagName.toLowerCase(),
-      attributes: {},
-      children: []
-  };
+    const childArray = Array.from(child.children || []) as HTMLElement[];
+    let currentChild = childArray[0];
 
-  // Add attributes
-  for (const attr of element.attributes) {
-      node.attributes[attr.name] = attr.value;
-  }
+    childArray.forEach((span) => {
+      let newNode = span;
 
-  // Add text content if it's a text-only node
-  if (element.childNodes.length === 1 && element.childNodes[0].nodeType === Node.TEXT_NODE) {
-      node.content = element.textContent?.trim();
-  }
+      if(!detectStyleChange(toStyle(currentChild.style)!, toStyle(span.style)!) && span != childArray[0]) {
+        newNode = document.createElement('span')
+        newNode.innerText = (currentChild.textContent || '') + (span.textContent || '') 
+        newNode.setAttribute('style', styleToString(toStyle(currentChild.style))!)
 
-  // Recursively process child elements
-  for (const child of Array.from(element.children)) {
-      node.children.push(htmlToJson(child));
-  }
+        child.replaceChild(newNode, currentChild)
+        child.removeChild(span)
+      }
 
-  return node;
+      currentChild = newNode
+    })
+  })
 }
 
-function jsonToHtml(node: HtmlNode): string {
-  // Start with the opening tag and its attributes
-  const attributes = node.attributes
-      ? Object.entries(node.attributes)
-            .map(([key, value]) => ` ${key}="${value}"`)
-            .join("")
-      : "";
+function cleanupEmptyNodes(parent: HTMLElement) {
+  const children = Array.from(parent.children) as HTMLElement[];
 
-  // Handle content or children
-  let content = "";
-
-  if (node.children && node.children.length > 0) {
-      // Recursively process children
-      content = node.children.map(jsonToHtml).join("");
-  } else if (node.content) {
-      // Add text content if no children exist
-      content = node.content;
-  }
-
-  // Self-closing tag if no children or content
-  if (!content) {
-      return `<${node.tag}${attributes} />`;
-  }
-
-  // Return full tag with content
-  return `<${node.tag}${attributes}>${content}</${node.tag}>`;
+  children.forEach((child) => {
+    if (child.tagName === "SPAN" && child.textContent?.trim() === "") {
+      child.remove();
+    }
+    if (child.tagName === "DIV" && child.childNodes.length === 0) {
+      child.remove();
+    }
+  });
 }

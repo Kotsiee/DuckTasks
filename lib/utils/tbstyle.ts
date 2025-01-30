@@ -10,7 +10,7 @@ export type style = {
 };
 
 // Utility function to convert CSS style to a style object
-export const toStyle = (style?: CSSStyleDeclaration | null): style | null => {
+export const toStyle = (style?: CSSStyleDeclaration): style | null => {
   if (!style) return null;
 
   return {
@@ -23,23 +23,8 @@ export const toStyle = (style?: CSSStyleDeclaration | null): style | null => {
   };
 };
 
-// Utility function to convert a style object to an HTML tag
-export const styleToTag = (style: style | null): string | null => {
-  if (!style) return null;
-
-  let styleString = ''
-  
-  styleString +=  `${style.color ? `color: ${style.color};` : ""}`
-  styleString +=  `${style.size ? `font-size: ${style.size};` : ""}`
-  styleString +=  `${style.bold ? `font-weight: bold;` : ""}`
-  styleString +=  `${style.italic ? `font-style: italic;` : ""}`
-  styleString +=  `${style.underline || style.strike? `text-decoration: ${style.underline ? "underline" : ""} ${style.strike ? "line-through" : ""};`: ""}`
-
-  return `<span style="${styleString}">`;
-};
-
-export const styleToString = (style: style | null): string | null => {
-  if (!style) return null;
+export const styleToString = (style: style | null): string => {
+  if (!style) return '';
 
   let styleString = ''
 
@@ -52,22 +37,6 @@ export const styleToString = (style: style | null): string | null => {
   return styleString
 };
 
-
-
-
-// Utility function to clean up text content of a node
-export const cleanUpNode = (
-  node: HTMLElement | Node,
-  className: string,
-): void => {
-    console.log(node)
-    if (node instanceof HTMLElement && node.classList[0] !== className) {
-        node.remove();
-    } else {
-        node.textContent = "";
-    }
-};
-
 export function detectStyleChange(current: style, newStyle: style, attr?: string): boolean {
     const arr = ["color", "size", "bold", "italic", "underline", "strike"]
     
@@ -76,4 +45,82 @@ export function detectStyleChange(current: style, newStyle: style, attr?: string
 
     const styleKeys: (keyof style)[] = arr;
     return styleKeys.some((key) => current[key] !== newStyle[key]);
+}
+
+type Tag = {
+  tag: string;
+  style: style
+  content?: string;
+  children?: HtmlNode[];
+};
+
+export const styleToJSON = (element: HTMLElement): Tag => {
+  const tag = {
+    tag: '',
+    style: {}
+  }
+
+  return tag
+};
+
+
+
+type HtmlNode = {
+  tag: string; // Tag name
+  attributes: { [key: string]: string }; // Attributes as key-value pairs
+  children: HtmlNode[]; // Child nodes
+  content?: string; // Optional text content
+};
+
+function htmlToJson(element: Element): HtmlNode {
+  const node: HtmlNode = {
+      tag: element.tagName.toLowerCase(),
+      attributes: {},
+      children: []
+  };
+
+  // Add attributes
+  for (const attr of element.attributes) {
+      node.attributes[attr.name] = attr.value;
+  }
+
+  // Add text content if it's a text-only node
+  if (element.childNodes.length === 1 && element.childNodes[0].nodeType === Node.TEXT_NODE) {
+      node.content = element.textContent?.trim();
+  }
+
+  // Recursively process child elements
+  for (const child of Array.from(element.children)) {
+      node.children.push(htmlToJson(child));
+  }
+
+  return node;
+}
+
+function jsonToHtml(node: HtmlNode): string {
+  // Start with the opening tag and its attributes
+  const attributes = node.attributes
+      ? Object.entries(node.attributes)
+            .map(([key, value]) => ` ${key}="${value}"`)
+            .join("")
+      : "";
+
+  // Handle content or children
+  let content = "";
+
+  if (node.children && node.children.length > 0) {
+      // Recursively process children
+      content = node.children.map(jsonToHtml).join("");
+  } else if (node.content) {
+      // Add text content if no children exist
+      content = node.content;
+  }
+
+  // Self-closing tag if no children or content
+  if (!content) {
+      return `<${node.tag}${attributes} />`;
+  }
+
+  // Return full tag with content
+  return `<${node.tag}${attributes}>${content}</${node.tag}>`;
 }
