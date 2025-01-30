@@ -1,6 +1,7 @@
 import { PageProps } from '$fresh/server.ts';
+import { useState } from "preact/hooks";
 import { useUser } from "../components/UserContext.tsx";
-import Test from "../islands/Test.tsx";
+import Test, { initDB } from "../islands/Test.tsx";
 import { User } from "../lib/types/index.ts";
 
 export default function Home() {

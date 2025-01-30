@@ -47,22 +47,19 @@ export function detectStyleChange(current: style, newStyle: style, attr?: string
     return styleKeys.some((key) => current[key] !== newStyle[key]);
 }
 
-type Tag = {
-  tag: string;
-  style: style
-  content?: string;
-  children?: HtmlNode[];
+export const styleToTag = (style: style | null): string | null => {
+  if (!style) return null;
+
+  let styleString = ''
+  
+  styleString +=  `${style.color ? `color: ${style.color};` : ""}`
+  styleString +=  `${style.size ? `font-size: ${style.size};` : ""}`
+  styleString +=  `${style.bold ? `font-weight: bold;` : ""}`
+  styleString +=  `${style.italic ? `font-style: italic;` : ""}`
+  styleString +=  `${style.underline || style.strike? `text-decoration: ${style.underline ? "underline" : ""} ${style.strike ? "line-through" : ""};`: ""}`
+
+  return `<span style="${styleString}">`;
 };
-
-export const styleToJSON = (element: HTMLElement): Tag => {
-  const tag = {
-    tag: '',
-    style: {}
-  }
-
-  return tag
-};
-
 
 
 type HtmlNode = {

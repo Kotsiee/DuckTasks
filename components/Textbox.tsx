@@ -11,12 +11,27 @@ interface ITextFunctions {
   ref: HTMLDivElement
 }
 
-export default function TextBox(defaultText: string) {
-  const text = useSignal<string>(defaultText);
+export default function Textbox() {
+  const text = useSignal<string>(`
+        <div><span style="color: default">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span><span style="color: yellow">67890</span><span style="color: yellow">67890</span></div>
+        <div><span style="color: default">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span></div>
+        <div><span style="color: default">123456789</span><span style="color: cyan; font-weight: bold">123456789</span><span style="color: purple">123456789</span></div>
+        <div>
+          <span style="color: default">hello? </span>
+          <span style="color: rebeccapurple">it's me </span>
+          <span style="color: default">I was wondering </span>
+          <span style="color: green; font-weight: bold;">if after all </span>
+          <span style="color: seagreen;">these years </span>
+          <span style="color: red">you'd </span>
+          <span style="color: red; font-weight: bold;">like to meet </span>
+          <span style="color: default">to go over </span>
+          <span style="color: orange">everything</span>
+        </div>`);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     ref.current!.innerHTML = text.value;
+    fromJSON(toJSON(ref.current as HTMLElement, 'TOP'))
   }, []);
 
   const applyTextStyle = (type: ITextFunctions["type"], value: boolean) => {
@@ -251,6 +266,54 @@ export default function TextBox(defaultText: string) {
   );
 }
 
+interface jsonTag {
+  Tag?: string;
+  Style?: style;
+  Content?: string;
+  Children?: jsonTag[]
+}
+
+function toJSON(parent: HTMLElement, tag: string): jsonTag {
+  const newTag: jsonTag = { }
+  
+  if(tag == 'SPAN') {
+    newTag.Content = parent.textContent!
+    newTag.Style = toStyle(parent.style)!
+  }
+  else {
+    newTag.Tag = parent.tagName
+    newTag.Children = []
+  }
+
+  if(parent.hasChildNodes()){
+    (Array.from(parent.children) as HTMLElement[]).forEach(item => {
+      newTag.Children?.push(toJSON(item, item.tagName))
+    })
+  }
+
+  return newTag
+}
+
+function fromJSON(parent: jsonTag): HTMLElement {
+  const newTag: HTMLElement = document.createElement(parent.Tag ? parent.Tag.toLowerCase() : 'span')
+
+  newTag.textContent = parent.Content || ''
+
+  const style = parent.Style || {}
+  if(!style.color && !parent.Tag)
+    style.color = 'default'
+
+  newTag.setAttribute('style', styleToString(style || {}))
+
+  if (parent.Children && parent.Children.length > 0) {
+    parent.Children.forEach(item => {
+      newTag.appendChild(fromJSON(item))
+    })
+  }
+
+  console.log(newTag)
+  return newTag
+}
 
 function setStyle(props: ITextFunctions) {
   const { style, type, ref } = props;
