@@ -1,55 +1,7 @@
+@import '../../islands/explore/exploreNavbar.css';
+@import '../../islands/explore/exploreFilter.css';
+
 .explore-layout {
-    .explore-select{
-        background-color: hsl(0, 0%, 7.5%);
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        ul {
-            display: flex;
-            *{ 
-                user-select: none;
-                transition: all 150ms;
-            }
-
-            .nav-btn-explore{
-                a{
-                    display: flex;
-                    height: 100%;
-                    width: 100%;
-                    padding: 15px 20px;
-                    padding-bottom: 20px ;
-                }
-
-                &:hover{
-                    background: linear-gradient(
-                        #aaa 2px,
-                        #aaa6 5%, 
-                        #0000 50%);
-
-                    a { color: var(--text-color-hover); }
-                }
-
-                &.active{
-                    background: linear-gradient(
-                        var(--primary-colour) 2px,
-                        hsla(
-                             var(--primary-hue), 
-                            var(--primary-saturation), 
-                            var(--primary-lightness), 0.4
-                            ) 5%, 
-                        #0000 50%);
-
-                    a{ 
-                        color: var(--primary-colour);
-                        font-weight: var(--weight-bold);
-                    }
-                }
-            }
-        }
-    }
-
     .explore-content{
         display: flex;
         justify-content: center;

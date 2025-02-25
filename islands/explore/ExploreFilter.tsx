@@ -1,11 +1,11 @@
 // deno-lint-ignore-file no-explicit-any
 import { useSignal } from "https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js";
-import { DualSlider } from "../components/DualSlider.tsx";
-import AIcon, { Icons } from "../components/Icons.tsx";
-import { Searchbar, SearchbarDropdown } from "../components/Searchbar.tsx";
+import { DualSlider } from "../../components/DualSlider.tsx";
+import AIcon, { Icons } from "../../components/Icons.tsx";
+import { Searchbar, SearchbarDropdown } from "../../components/Searchbar.tsx";
 import { useRef } from 'preact/hooks';
 import { JSX } from "preact/jsx-runtime";
-import { joinProjectFilter, parseProjectFilter, ProjectFilter } from "../lib/utils/parsers.ts";
+import { joinProjectFilter, parseProjectFilter, ProjectFilter } from "../../lib/utils/parsers.ts";
 
 export default function ExploreFilters(props: JSX.HTMLAttributes<HTMLDivElement> & { sort: string[], startSort: string, filter: filterOptionProps[], url: URL}) {
     const openFilter = useRef<HTMLDivElement>(null);
@@ -37,7 +37,6 @@ export default function ExploreFilters(props: JSX.HTMLAttributes<HTMLDivElement>
     return(
         <div class="explore-filter-container">
             <div class="explore-filter">
-                <link rel="stylesheet" href="/styles/islands/exploreFilter.css" />
                 <div class="explore-btns sort">
                     <div>
                         <button class="explore-btn sort-dd" tabindex={0} aria-label="Open Sort Menu"

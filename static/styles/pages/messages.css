@@ -1,5 +1,6 @@
 @import "../islands/messages/ChatMessages.css";
 @import "../islands/messages/ChatList.css";
+@import "../islands/messages/ChatResize.css";
 
 :root {
     --messages-width: 380px;

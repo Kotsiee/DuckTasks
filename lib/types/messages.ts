@@ -5,7 +5,21 @@ export interface Messages {
     id?: string;
     user: ChatRoles | null;
     chat?: Chat | null;
-    content: string;
+    content: jsonTag;
     attachments?: Files[];
     sentAt: DateTime;
+}
+
+export interface jsonTag {
+    Tag?: string;
+    Style?: style | null;
+    Content?: string | null;
+    index?: number;
+    range?: number;
+    indent?: number;
+    Children?: jsonTag[];
+}
+
+export interface style {
+    color?: string;
 }

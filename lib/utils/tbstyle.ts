@@ -16,8 +16,8 @@ export const toStyle = (style?: CSSStyleDeclaration): style | null => {
   return {
     color: style.color || undefined,
     size: style.fontSize || undefined,
-    bold: style.fontWeight === "bold",
-    italic: style.fontStyle === "italic",
+    bold: style.fontWeight === "bold" || false,
+    italic: style.fontStyle === "italic" || false,
     underline: style.textDecoration.includes("underline"),
     strike: style.textDecoration.includes("line-through"),
   };
@@ -120,4 +120,77 @@ function jsonToHtml(node: HtmlNode): string {
 
   // Return full tag with content
   return `<${node.tag}${attributes}>${content}</${node.tag}>`;
+}
+
+
+interface jsonTag {
+  Tag?: string;
+  Style?: style;
+  Content?: string;
+  Children?: jsonTag[]
+}
+
+function toJSON(parent: HTMLElement, tag: string): jsonTag {
+  const newTag: jsonTag = { }
+  
+  if(tag == 'SPAN') {
+    newTag.Content = parent.textContent!
+    newTag.Style = toStyle(parent.style)!
+  }
+  else {
+    newTag.Tag = parent.tagName
+    newTag.Children = []
+  }
+
+  if(parent.hasChildNodes()){
+    (Array.from(parent.children) as HTMLElement[]).forEach(item => {
+      newTag.Children?.push(toJSON(item, item.tagName))
+    })
+  }
+
+  return newTag
+}
+
+function fromJSON(parent: jsonTag): HTMLElement {
+  const newTag: HTMLElement = document.createElement(parent.Tag ? parent.Tag.toLowerCase() : 'span')
+
+  newTag.textContent = parent.Content || ''
+
+  const style = parent.Style || {}
+  if(!style.color && !parent.Tag)
+    style.color = 'default'
+
+  newTag.setAttribute('style', styleToString(style || {}))
+
+  if (parent.Children && parent.Children.length > 0) {
+    parent.Children.forEach(item => {
+      newTag.appendChild(fromJSON(item))
+    })
+  }
+
+  console.log(newTag)
+  return newTag
+}
+
+function cleanup(childrenArray: HTMLElement[]) {
+  childrenArray.forEach((child) => {
+
+    const childArray = Array.from(child.children || []) as HTMLElement[];
+    let currentChild = childArray[0];
+
+    childArray.forEach((span) => {
+      let newNode = span;
+
+      if(!detectStyleChange(toStyle(currentChild.style)!, toStyle(span.style)!) && span != childArray[0]) {
+        newNode = document.createElement('span')
+        newNode.innerText = (currentChild.textContent || '') + (span.textContent || '') 
+        newNode.setAttribute('style', styleToString(toStyle(currentChild.style))!)
+
+        child.replaceChild(newNode, currentChild)
+        child.removeChild(span)
+      }
+
+      currentChild = newNode
+    })
+  })
 }

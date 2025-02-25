@@ -1,4 +1,4 @@
-import RegisterIsland from "../../../islands/account/Register.tsx";
+import RegisterIsland from "../../islands/account/Register.tsx";
 
 export default function Register() {
 

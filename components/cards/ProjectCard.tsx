@@ -52,7 +52,7 @@ export function ProjectCard(props: JSX.HTMLAttributes<HTMLDivElement> & { projec
 
             <div class="details-container">
               <hr />
-              <div className="container">
+              <div className="deets">
                 <div>
                   <p className="title">Budget</p>
                   <p className="info">£100</p>

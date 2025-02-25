@@ -9,7 +9,7 @@ export default function App({ Component }: PageProps) {
         <link rel="stylesheet" href="/styles/styles.css" />
         <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"></link>
       </head>
-      <body>
+      <body class="dark-mode brand">
         <Component />
       </body>
     </html>

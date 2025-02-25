@@ -1,7 +1,8 @@
-import { createElement } from "https://esm.sh/v128/preact@10.22.0/src/index.js";
+import { createElement, JSX } from "https://esm.sh/v128/preact@10.22.0/src/index.js";
 import { useSignal } from "https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js";
 import { useRef, useEffect } from 'preact/hooks';
 import { detectStyleChange, style, styleToString, toStyle } from "../lib/utils/tbstyle.ts";
+import { isTemplateExpression } from "https://deno.land/x/ts_morph@21.0.1/common/typescript.d.ts";
 
 interface ITextFunctions {
   style: style;
@@ -11,27 +12,14 @@ interface ITextFunctions {
   ref: HTMLDivElement
 }
 
-export default function Textbox() {
-  const text = useSignal<string>(`
-        <div><span style="color: default">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span><span style="color: yellow">67890</span><span style="color: yellow">67890</span></div>
-        <div><span style="color: default">12345</span><span style="color: lime">67890</span><span style="color: red">12345</span><span style="color: yellow">67890</span></div>
-        <div><span style="color: default">123456789</span><span style="color: cyan; font-weight: bold">123456789</span><span style="color: purple">123456789</span></div>
-        <div>
-          <span style="color: default">hello? </span>
-          <span style="color: rebeccapurple">it's me </span>
-          <span style="color: default">I was wondering </span>
-          <span style="color: green; font-weight: bold;">if after all </span>
-          <span style="color: seagreen;">these years </span>
-          <span style="color: red">you'd </span>
-          <span style="color: red; font-weight: bold;">like to meet </span>
-          <span style="color: default">to go over </span>
-          <span style="color: orange">everything</span>
-        </div>`);
+export default function Textbox(props: JSX.HTMLAttributes<HTMLInputElement>) {
+  const text = useSignal<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const history = useSignal([]);
 
   useEffect(() => {
-    ref.current!.innerHTML = text.value;
-    fromJSON(toJSON(ref.current as HTMLElement, 'TOP'))
+    // ref.current!.innerHTML = text.value;
+    // fromJSON(toJSON(ref.current as HTMLElement, 'TOP'))
   }, []);
 
   const applyTextStyle = (type: ITextFunctions["type"], value: boolean) => {
@@ -45,7 +33,7 @@ export default function Textbox() {
       const style: style = toStyle(selection.anchorNode?.parentElement?.style)!
       style[type as keyof style] = value
       newSpan.setAttribute('style', styleToString(style))
-      newSpan.textContent = '\ '
+      newSpan.textContent = '\u200B'
 
       range.insertNode(newSpan)
     }
@@ -71,12 +59,15 @@ export default function Textbox() {
         selection: selection,
         ref: ref.current
       }
-  
+
+      console.log('style')
       setStyle(props)
     }
   };
 
-  const handleEnterKey = (e: KeyboardEvent) => {
+  const handleEnterKey = (e: KeyboardEvent) => { 
+    e.preventDefault();
+
     if (!ref.current) return;
     const selection = globalThis.getSelection();
     if (!selection || selection.rangeCount === 0) return;
@@ -91,8 +82,6 @@ export default function Textbox() {
     }
   
     if (!currentBlock) return;
-  
-    e.preventDefault();
   
     const spans = Array.from(currentBlock.children) as HTMLSpanElement[];
     const startIndex = spans.findIndex((span) => span.contains(startContainer));
@@ -134,35 +123,55 @@ export default function Textbox() {
   
       // Get current span and text parts
       const startSpan = spans[startIndex];
-      const startText = startSpan.textContent!;
-      const startOffset = range.startOffset;
-  
-      const firstPart = startText.slice(0, startOffset); // Before split
-      const secondPart = startText.slice(startOffset); // After split
-  
-      startSpan.textContent = firstPart; // Keep first part in original span
-  
-      if (secondPart) {
-        const splitSpan = document.createElement("span");
-        splitSpan.textContent = secondPart;
-        const currentStyle = toStyle(startSpan.style) || {};
-        splitSpan.setAttribute("style", styleToString(currentStyle)!);
-        newContainer.appendChild(splitSpan);
+
+      if (startSpan && startSpan.textContent) {
+        const startText = startSpan.textContent;
+        const startOffset = range.startOffset;
+    
+        const firstPart = startText.slice(0, startOffset); // Before split
+        const secondPart = startText.slice(startOffset); // After split
+    
+        startSpan.textContent = firstPart; // Keep first part in original span
+    
+        if (secondPart) {
+          const splitSpan = document.createElement("span");
+          splitSpan.textContent = secondPart;
+          const currentStyle = toStyle(startSpan.style) || {};
+          splitSpan.setAttribute("style", styleToString(currentStyle)!);
+          newContainer.appendChild(splitSpan);
+        }
+    
+        // Move all spans **after** the split point into the new div
+        for (let i = startIndex + 1; i < spans.length; i++) {
+          newContainer.appendChild(spans[i]);
+        }
+    
+        // Insert the new div block after current
+        currentBlock.after(newContainer);
+    
+        // Move cursor to new line
+        range.setStartBefore(newContainer.childNodes[0]);
+        range.setEndBefore(newContainer.childNodes[0]);
+        selection.removeAllRanges();
+        selection.addRange(range);
       }
+      else {
+        const newLine = document.createElement("div");
+        const newBlock = document.createElement("span");
+        newBlock.innerText = "\u200B";
+    
+        const currentStyle = {};
+        newBlock.setAttribute("style", styleToString(currentStyle)!);
   
-      // Move all spans **after** the split point into the new div
-      for (let i = startIndex + 1; i < spans.length; i++) {
-        newContainer.appendChild(spans[i]);
+        ref.current.appendChild(newLine);
+        newLine.appendChild(newBlock);
+    
+        // Move cursor to new line
+        range.setStart(newBlock, 0);
+        range.setEnd(newBlock, 0);
+        selection.removeAllRanges();
+        selection.addRange(range);
       }
-  
-      // Insert the new div block after current
-      currentBlock.after(newContainer);
-  
-      // Move cursor to new line
-      range.setStartBefore(newContainer.childNodes[0]);
-      range.setEndBefore(newContainer.childNodes[0]);
-      selection.removeAllRanges();
-      selection.addRange(range);
     }
   };
 
@@ -202,9 +211,27 @@ export default function Textbox() {
   }
 
   const keyDown = (e: createElement.JSX.TargetedKeyboardEvent<HTMLDivElement>) => {
+    if (!ref.current) return
+
+    if (!ref.current.textContent?.replace('\u200B', '')) {
+      ref.current.innerHTML = ''
+
+      const newLine = document.createElement("div");
+      const newBlock = document.createElement("span");
+      newBlock.innerText = "\u200B";
+  
+      const currentStyle: style = {};
+      newBlock.setAttribute("style", styleToString(currentStyle)!);
+
+      ref.current.appendChild(newLine);
+      newLine.appendChild(newBlock);
+
+      console.log('new line')
+    }
+
     const selection = globalThis.getSelection();
 
-    if (selection  && ref.current) {  
+    if (selection) {  
       if (e.key === "Enter") {
         handleEnterKey(e);
         return;
@@ -243,16 +270,16 @@ export default function Textbox() {
   };
 
   return (
-    <div class="div">
-      <link rel="stylesheet" href="/styles/test.css" />
+    <div class={`${props.class}`}>
       <div
+      class={`text${text.value ? '': ' input'}`}
       contentEditable={true}
       tabindex={0}
       ref={ref}
       onKeyDown={(e) => {keyDown(e)}}
       onKeyUp={(e) => {keyUp(e)}}
       onInput={(e) => {
-        text.value = e.currentTarget.innerHTML || "";
+        text.value = e.currentTarget.textContent? e.currentTarget.textContent.replace('\u200B', '') : '';
       }}
 
       onPaste={(e) => {
@@ -266,241 +293,232 @@ export default function Textbox() {
   );
 }
 
-interface jsonTag {
-  Tag?: string;
-  Style?: style;
-  Content?: string;
-  Children?: jsonTag[]
-}
-
-function toJSON(parent: HTMLElement, tag: string): jsonTag {
-  const newTag: jsonTag = { }
-  
-  if(tag == 'SPAN') {
-    newTag.Content = parent.textContent!
-    newTag.Style = toStyle(parent.style)!
-  }
-  else {
-    newTag.Tag = parent.tagName
-    newTag.Children = []
-  }
-
-  if(parent.hasChildNodes()){
-    (Array.from(parent.children) as HTMLElement[]).forEach(item => {
-      newTag.Children?.push(toJSON(item, item.tagName))
-    })
-  }
-
-  return newTag
-}
-
-function fromJSON(parent: jsonTag): HTMLElement {
-  const newTag: HTMLElement = document.createElement(parent.Tag ? parent.Tag.toLowerCase() : 'span')
-
-  newTag.textContent = parent.Content || ''
-
-  const style = parent.Style || {}
-  if(!style.color && !parent.Tag)
-    style.color = 'default'
-
-  newTag.setAttribute('style', styleToString(style || {}))
-
-  if (parent.Children && parent.Children.length > 0) {
-    parent.Children.forEach(item => {
-      newTag.appendChild(fromJSON(item))
-    })
-  }
-
-  console.log(newTag)
-  return newTag
-}
-
 function setStyle(props: ITextFunctions) {
   const { style, type, ref } = props;
   let { selection } = props;
 
-  const childrenArray = Array.from(ref.children || []) as HTMLElement[];
+  let childrenArray = Array.from(ref.children || []) as HTMLElement[];
 
   selection = document.getSelection()!
   const range = selection.getRangeAt(0);
 
-  const { endOffset } = range
+  const startIndex = childrenArray.findIndex((child) => child === range.startContainer || child.contains(range.startContainer));
+  const startContainer = childrenArray[startIndex]
+  const startContainerArray = Array.from(startContainer!.children || []) as HTMLElement[];
+  const startStyle = toStyle(range.startContainer.parentElement?.style)
 
-  let startIndex = childrenArray.findIndex((child) => child === range.startContainer || child.contains(range.startContainer));
-  let endIndex = childrenArray.findIndex((child) => child === range.endContainer || child.contains(range.endContainer));
+  const endIndex = childrenArray.findIndex((child) => child === range.endContainer || child.contains(range.endContainer));
+  const endContainer = childrenArray[endIndex]
+  const endContainerArray = Array.from(endContainer!.children || []) as HTMLElement[];
+  const endStyle = toStyle(range.endContainer.parentElement?.style)
 
-  let currentStyle = style
-  if (toStyle(range.startContainer.parentElement?.style)![type as keyof style] === style[type as keyof style] &&
-  toStyle(range.endContainer.parentElement?.style)![type as keyof style] === style[type as keyof style])
+  const startSelection = range.startContainer;
+  const startSelectionText = startSelection.textContent;
+  const startOffset = range.startOffset;
+
+  const endSelection = range.endContainer;
+  const endSelectionText = endSelection.textContent;
+  const endOffset = range.endOffset;
+
+  const currentStyle = style!
+  if (startStyle![type as keyof style] === style[type as keyof style] &&
+    endStyle![type as keyof style] === style[type as keyof style])
     currentStyle[type as keyof style] = props.defaults[type as keyof style]
 
-  let startNode: HTMLElement;
-  let endNode: HTMLElement;
-
   const extracted = range.extractContents()
-  const pArray = Array.from(extracted.children || []) as HTMLElement[];
-  
-  const loop = (pArray: HTMLElement[]) => {
-    let currentNode = document.createElement('span')
-    const newNodes: HTMLSpanElement[] = []
+  const extractedArray = Array.from(extracted.children || []) as HTMLElement[];
 
-    pArray.forEach((item, index) => {
-      const thisStyle = toStyle(item.style)!
-      thisStyle[type as keyof style] = style[type as keyof style]
+  if (startContainer === endContainer) {
+    const vars: iStyleLoop = {
+      startText: startSelectionText!,
+      startOffset: startOffset,
+      startStyle: startStyle!,
       
-      if(index === 0) {
-        if(detectStyleChange(currentStyle, thisStyle, props.type)) currentStyle = thisStyle
-
-        currentNode.setAttribute('style', styleToString(currentStyle)!)
-        currentNode.textContent += item.textContent!
-      }
-      else if(index === pArray.length - 1) {
-        if(detectStyleChange(currentStyle, thisStyle, props.type)){
-          currentStyle = thisStyle
-          newNodes.push(currentNode)
-
-          currentNode = document.createElement('span')
-          currentNode.setAttribute('style', styleToString(currentStyle)!)
-        }
-
-        currentNode.textContent += item.textContent!
-        newNodes.push(currentNode)
-      }
-      else {
-        if(detectStyleChange(currentStyle, thisStyle, props.type)){
-          currentStyle = thisStyle
-          newNodes.push(currentNode)
-
-          currentNode = document.createElement('span')
-          currentNode.setAttribute('style', styleToString(currentStyle)!)
-        }
-
-        currentNode.textContent += item.textContent!
-      }
-    })
-
-    return newNodes
-  }
-
-  // Case 1: Style is applied within a single element
-  if (startIndex === endIndex) {   
-    let currentNode;
-    let newNodes: HTMLSpanElement[] = [];
-
-    if (pArray.length > 0) {
-      newNodes = loop(pArray)
-
-      range.deleteContents();
-      newNodes.forEach((node) => {
-        range.insertNode(node);
-        range.setStartAfter(node);
-        range.setEndAfter(node);
-      });
-
-      selection.removeAllRanges();
-      selection.addRange(range);
+      endText: endSelectionText!,
+      endOffset: endOffset,
+      endStyle: endStyle!,
+      
+      style: currentStyle,
+      type: type as keyof style,
+      extracted: extracted,
+      extractedArray: extractedArray
     }
-    else {
-      currentNode = document.createElement('span')
-      currentNode.textContent = extracted.textContent
-      const newStyle = toStyle(range.startContainer.parentElement?.style)!
-      newStyle[type as keyof style] = currentStyle[type as keyof style]
-      currentNode.setAttribute('style', styleToString(newStyle)!)
-      range.insertNode(currentNode);
-    }
+    const fragment = styleLoop(vars)
+    console.log(startIndex)
+    console.log(startContainer)
+    console.log(startContainerArray)
 
-    startNode = currentNode ? currentNode : newNodes[0]
-    endNode = currentNode ? currentNode : newNodes[newNodes.length-1]
+    startContainer?.replaceChild(fragment, startSelection.parentElement!)
+    endSelection.parentElement?.remove()
   }
   else {
-    pArray.forEach((container, index) => {
-      const childrenArray = Array.from(ref.children || []);
-      const cArray = Array.from(container.children || []) as HTMLElement[];
-      const newNodes: HTMLSpanElement[] = loop(cArray)
-      let currentNode;
+    const docFrag = document.createDocumentFragment()
 
-      if (index === 0) {
-        range.selectNodeContents(childrenArray[startIndex + index]);
-        range.collapse(false);
+    const eLength = extractedArray.length - 1
+    let startText = startSelectionText!
+    let endText = startContainerArray[startContainerArray.length - 1].textContent!
+
+    extractedArray.forEach((line, index) => {
+      const currLine = Array.from(line.children || []) as HTMLElement[]
+
+      if (index != 0)
+      {
+        startText = currLine[0].textContent!
+        endText = currLine[currLine.length - 1].textContent!
       }
-      else if (index === pArray.length - 1){
-        range.selectNodeContents(childrenArray[startIndex + index]);
-        range.setStart(childrenArray[startIndex + index], 0);
-        range.setEnd(childrenArray[startIndex + index], 0);
-        range.collapse(false);
+
+      if (index === eLength)
+      {
+        startText = endContainerArray[0].textContent!
+        endText = endSelectionText!
+      }
+
+      const vars: iStyleLoop = {
+        startText: startText,
+        startOffset: index === 0 ? startOffset : 0,
+        startStyle: startStyle!,
+        
+        endText: endText,
+        endOffset: index === eLength ? endOffset : currLine[currLine.length - 1].textContent!.length - 1,
+        endStyle: endStyle!,
+        
+        style: currentStyle,
+        type: type as keyof style,
+        extracted: line,
+        extractedArray: currLine
+      }
+
+      const fragment = styleLoop(vars)
+      const str = document.createElement('div') as HTMLElement
+
+      const temp = document.createDocumentFragment();
+      (Array.from(childrenArray[startIndex + index].children) as HTMLElement[]).forEach(item => temp.appendChild(item));
+      const originalLength = temp.childElementCount;
+      
+      // console.log(temp.textContent, fragment.textContent)
+      if (index === 0)
+      {
+        temp?.replaceChild(fragment, startSelection.parentElement!)
+        temp.removeChild(temp.lastChild!)
+        str?.appendChild(temp)
+      }
+      else if (index === eLength){
+        temp?.replaceChild(fragment, endSelection.parentElement!)
+        str?.appendChild(temp)
       }
       else {
-        const ind = startIndex + index - 1
-        range.selectNodeContents(childrenArray[ind]);
-        range.setStartAfter(childrenArray[ind]);
-        range.setEndAfter(childrenArray[ind]);
+        temp?.replaceChild(fragment, temp.firstChild!);
+        cleanupEmptyNodes(temp);
+        console.log(originalLength, temp.childElementCount);
+        (Array.from(temp.children) as HTMLElement[]).forEach((item, index) => {
+          if (index >= originalLength)
+            item.remove()
+        })
 
-        const newDiv = document.createElement('div')
-        range.insertNode(newDiv);
-        range.selectNodeContents(newDiv);
-        range.collapse(false);
+        str?.appendChild(temp)
       }
 
-      if(cArray.length > 1)
-        newNodes.forEach((node) => {
-          range.insertNode(node);
-          range.setStartAfter(node);
-          range.setEndAfter(node);
-        });
-      else {
-        currentNode = document.createElement('span')
-        currentNode.textContent = container.textContent
-        currentNode.setAttribute('style', styleToString(currentStyle)!)
-        range.insertNode(currentNode);
-      }
-
-      if (index === 0) startNode = currentNode ? currentNode : newNodes[0]
-      if (index === pArray.length - 1) endNode = currentNode ? currentNode : newNodes[newNodes.length-1]
-
-      selection.removeAllRanges();
-      selection.addRange(range);
+      docFrag.appendChild(str)
     })
+
+    ref.replaceChild(docFrag, startContainer)
+    endContainer.remove()
   }
 
-  const startArray = Array.from(childrenArray[startIndex].children || []) as HTMLElement[];
-  const endArray = Array.from(childrenArray[endIndex].children || []) as HTMLElement[];
+  childrenArray = Array.from(ref.children || []) as HTMLElement[];
 
-  startIndex = startArray.findIndex((child) => child === startNode || child.contains(startNode));
-  endIndex = endArray.findIndex((child) => child === endNode || child.contains(endNode));
-
-  range.setStart(startNode!.childNodes[0], 0)
-  range.setEnd(endNode!.childNodes[0], endOffset)
-  selection.removeAllRanges();
-  selection.addRange(range);
-
-  cleanupEmptyNodes(ref)
-  cleanup(childrenArray)
-}
-
-function cleanup(childrenArray: HTMLElement[]) {
-  childrenArray.forEach((child) => {
-
-    const childArray = Array.from(child.children || []) as HTMLElement[];
-    let currentChild = childArray[0];
-
-    childArray.forEach((span) => {
-      let newNode = span;
-
-      if(!detectStyleChange(toStyle(currentChild.style)!, toStyle(span.style)!) && span != childArray[0]) {
-        newNode = document.createElement('span')
-        newNode.innerText = (currentChild.textContent || '') + (span.textContent || '') 
-        newNode.setAttribute('style', styleToString(toStyle(currentChild.style))!)
-
-        child.replaceChild(newNode, currentChild)
-        child.removeChild(span)
-      }
-
-      currentChild = newNode
-    })
+  childrenArray.forEach(item => {
+    cleanupEmptyNodes(item)
   })
+
+  console.log(ref.innerHTML)
 }
 
-function cleanupEmptyNodes(parent: HTMLElement) {
+interface iStyleLoop {
+  startText: string;
+  startOffset: number;
+  startStyle: style;
+
+  endText: string;
+  endOffset: number;
+  endStyle: style;
+
+  style: style;
+  type: keyof style;
+  extracted: DocumentFragment | HTMLElement;
+  extractedArray: HTMLElement[];
+}
+
+const styleLoop = (props: iStyleLoop) => {
+  const {startText, startOffset, startStyle, endText, endOffset, endStyle, type, style, extracted, extractedArray} = props
+
+  const temp = document.createDocumentFragment()
+  let currentText = startText?.slice(0, startOffset)!
+  let currentStyle = style;
+
+  let str = document.createElement('span')
+  currentStyle = {...startStyle!}
+  str.setAttribute('style', styleToString(currentStyle))
+  str.textContent = currentText
+
+  if (extractedArray.length > 0)
+  {      
+    extractedArray.forEach(item => {
+      const thisStyle: style = toStyle(item.style)!
+      thisStyle[type as keyof style] = style[type as keyof style]
+
+      if (detectStyleChange(currentStyle, thisStyle)) {
+        str.textContent = currentText
+        temp.appendChild(str)
+
+        currentStyle = {...thisStyle}
+
+        str = document.createElement('span')
+        currentText = item.textContent!
+        str.textContent = currentText
+        str.setAttribute('style', styleToString(currentStyle))
+      }
+      else {
+        currentText += item.textContent!
+      }
+    });
+  }
+  else {
+    currentStyle[type] = style[type]
+
+    if (detectStyleChange(currentStyle, startStyle!)) {
+      
+      temp.appendChild(str)
+
+      str = document.createElement('span')
+      currentText = extracted.textContent!
+      str.textContent = currentText
+      str.setAttribute('style', styleToString(currentStyle))
+    }
+    else {
+      currentText += extracted.textContent!
+    }
+  }
+
+  if (detectStyleChange(currentStyle, endStyle!)) {
+    str.textContent = currentText
+    temp.appendChild(str)
+
+    str = document.createElement('span')
+    currentStyle = {...endStyle!}
+    currentText = endText?.slice(endOffset)!
+    str.setAttribute('style', styleToString(currentStyle))
+  }
+  else {
+    currentText += endText?.slice(endOffset)!
+  }
+
+  str.textContent = currentText
+  temp.appendChild(str)
+  return (temp)
+}
+
+function cleanupEmptyNodes(parent: HTMLElement | DocumentFragment) {
   const children = Array.from(parent.children) as HTMLElement[];
 
   children.forEach((child) => {

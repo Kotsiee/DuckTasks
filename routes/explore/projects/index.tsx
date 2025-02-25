@@ -3,7 +3,7 @@ import { defineRoute } from "$fresh/server.ts";
 import { Partial } from "$fresh/runtime.ts";
 import { ProjectDetails } from "../../../islands/explore/ProjectDetails.tsx";
 import ProjectList from "../../../islands/explore/ProjectList.tsx";
-import ExploreFilters from "../../../islands/ExploreFilter.tsx";
+import ExploreFilters from "../../../islands/explore/ExploreFilter.tsx";
 import { fetchProjectByID } from "../../../lib/api/projectApi.ts";
 import { parseProjectFilter } from "../../../lib/utils/parsers.ts";
 
@@ -15,6 +15,7 @@ export default defineRoute(async (req, _ctx) => {
 
   return (
     <div class="container">
+      <link rel="stylesheet" href="/styles/pages/explore/projects.css" />
       <ExploreFilters
       url={url}
       sort={["Best Match", "Most Recent", "Recently Updated", "Estimated Budget", "Contributors"]}
@@ -64,7 +65,6 @@ export default defineRoute(async (req, _ctx) => {
       />
 
       <div class="explore-projects" f-client-nav>
-        <link rel="stylesheet" href="/styles/pages/explore/projects.css" />
 
         <div class="explore-projects-items">
           <ProjectList filters={filters}/>

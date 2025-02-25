@@ -41,10 +41,28 @@
         .content {
             margin-top: 4px;
             padding: 6px 12px;
-            background-color: var(--btn-hover);
             font-size: 0.9em;
+            line-height: 1.3em;
             border-radius: var(--border-radius-smaller);
             max-width: 500px;
+
+            .text {
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                text-overflow: ellipsis; /* Optional: Adds "..." at the end */
+            }
+
+            .see-more {
+                font-size: 0.8em;
+                cursor: pointer;
+                user-select: none;
+                font-weight: var(--weight-bold);
+                color: var(--secondary-colour);
+
+                &:hover {
+                    color: var(--secondary-colour-dark);
+                }
+            }
         }
 
         .options {
@@ -77,6 +95,60 @@
         .content {
             text-align: right;
             background-color: hsla(var(--primary-hue), var(--primary-saturation), var(--primary-lightness), 0.5);
+
+            ul, ol {
+                text-align: left;
+            }
+        }
+    }
+
+    li {
+        &>.list-marker:before {
+            display: inline-block;
+            margin-right: .4em;
+            text-align: right;
+            white-space: nowrap;
+            width: 1.2em
+        }
+
+        &[data-list=bullet]>.list-marker:before {
+            content: '\2022'
+        }
+
+        &[data-list=ordered] {
+            counter-increment: list-0;
+
+            &>.list-marker:before {
+                content: counter(list-0, decimal) '.'
+            }
+
+            &.indent-1 {
+                counter-increment: list-1;
+
+                &>.list-marker:before {
+                    content: counter(list-1, lower-alpha) '.'
+                }
+            }
+
+            &.indent-2 {
+                counter-increment: list-2;
+
+                &>.list-marker:before {
+                    content: counter(list-2, lower-roman) '.'
+                }
+            }
+        }
+
+        [data-list] {
+            counter-set: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+
+            &.indent-1 {
+                counter-set: list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9
+            }
+
+            &.indent-2 {
+                counter-set: list-3 list-4 list-5 list-6 list-7 list-8 list-9
+            }
         }
     }
 

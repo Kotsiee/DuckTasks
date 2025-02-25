@@ -1,4 +1,4 @@
-import LoginIsland from "../../../islands/account/Login.tsx";
+import LoginIsland from "../../islands/account/Login.tsx";
 
 export default function Login() {
   return (

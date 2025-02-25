@@ -1,3 +1,5 @@
+@import './textbox.css';
+
 .messages-layout .chat-input {
     position: fixed;
     bottom: 0;
@@ -6,57 +8,56 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(#0000, var(--bg-colour-tertiary));
+    background: linear-gradient(#0000, var(--bg-colour-primary));
     backdrop-filter: blur(3px);
     padding-bottom: 36px;
 
     .container {
-        background-color: var(--bg-colour-tertiary);
+        background-color: var(--bg-colour-primary);
         outline: 1px solid var(--text-color-dark);
         border-radius: var(--border-radius-large);
         width: 80%;
-    }
 
-    .advanced-text-area {
-        display: flex;
-        align-items: center;
-        padding: 8px;
+        &:has(.ql-blank) {
+            .message-sent {
+                display: none !important;
+            }
 
-        ul {
-            display: flex;
-            align-items: center;
-            margin-left: 20px;
-            padding-right: 20px;
-
-            border-right: 1px solid #444;
+            .record-message {
+                display: flex !important;
+            }
         }
-    }
 
-    .chat-input-text {
-        height: 40px;
-        max-height: 12vh;
-        display: flex;
-        align-items: center;
 
-        .message-input {
-            height: auto;
-            max-height: inherit;
-            width: 100%;
-            font-size: 0.9em;
-            resize: none;
-            overflow-y: auto;
-            box-sizing: border-box;
+        &:not(:has(.ql-blank)) {
+            .message-sent {
+                display: flex !important;
+            }
 
-            .input {
-                height: inherit;
-                padding: 10px;
+            .record-message {
+                display: none !important;
             }
         }
     }
 
-    .options {
-        margin-right: 4px;
+    .chat-input-text {
+        /* height: 40px; */
+        max-height: 20vh;
+        display: flex;
+        align-items: center;
+        padding: 4px;
 
+        .message-input {
+            max-height: inherit;
+            width: 100%;
+            resize: none;
+            overflow-y: auto;
+            box-sizing: border-box;
+            padding: 8px;
+        }
+    }
+
+    .options {
         ul {
             display: flex;
             align-items: center;
@@ -66,29 +67,83 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                /* margin: 0 4px; */
 
                 .icon {
                     padding: 2px;
-                    /* fill: var(--text-color);
-                    stroke: none; */
                 }
 
-                &.message-sent {
+                path { stroke: none }
+
+                &.advanced-text {                    
+                    .advanced-text-icon {
+                        path {
+                            transition: fill 150ms; 
+                            fill: white;
+                        }
+                    }
+
+                    button {
+                        &:hover {
+                            .advanced-text-icon path { fill: var(--text-color-hover) }
+                        }
+                    }
+
+                    &.show { 
+                        path {
+                            fill: var(--secondary-colour)
+                        }
+
+                        button {
+                            &:hover .advanced-text-icon path{ fill: var(--secondary-colour-dark) }
+                            &:active .advanced-text-icon path{ fill: var(--secondary-colour-darker) }
+                        }
+                    }
+                }
+
+                &.record-message {
                     background-color: var(--primary-colour);
                     border-radius: 40px;
-                    padding: 4px 12px;
+                    height: 40px;
+                    width: 40px;
 
                     button {
                         display: flex;
                         align-items: center;
                         justify-content: center;
+                        position: absolute;
+                        padding: 4px;
+                        height: inherit;
+                        width: inherit;
+                        border-radius: inherit;
+                    }
+        
+                    .record-icon {
+                        padding: 2px;
+                        fill: var(--text-color);
+                    }
+        
+                    &:hover { background-color: var(--primary-colour-dark) }
+                    &:active { background-color: var(--primary-colour-darker) }
+                }
+
+                &.message-sent {
+                    background-color: var(--primary-colour);
+                    border-radius: 40px;
+                    height: 40px;
+                    width: 60px;
+
+                    button {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        position: absolute;
+                        height: inherit;
+                        width: inherit;
+                        border-radius: inherit;
                     }
         
                     .send-icon {
-                        padding: 2px;
                         fill: var(--text-color);
-                        stroke: none;
                     }
         
                     &:hover {
@@ -105,21 +160,21 @@
         margin-right: 8px;
         border-radius: 20px;
         cursor: pointer;
-        /* transition: transform 150ms;
+        transition: all 250ms var(--easing);
 
-        &:hover{
-            transform: rotate(45deg);
-        } */
+        &:hover {
+            transform: scale(0.8);
+        }
     }
 
     .chat-input-additional{
         position: absolute;
-        bottom: 60px;
-        margin-bottom: 20px;
+        bottom: var(--footer-hight);
+        /* margin-bottom: 30px; */
         border-radius: var(--border-radius-small);
-        outline: 1px solid var(--text-color);
+        outline: 1px solid var(--text-color-dark);
         padding: 4px;
-        background-color: var(--bg-colour-tertiary);
+        background-color: var(--bg-colour-primary);
         display: none;
 
         .item-select{
@@ -142,7 +197,21 @@
 
                 &:hover {
                     background-color: var(--btn-active);
+
+                    &.File { background-color: hsla(346, 84%, 61%, 0.25) }
+                    &.Poll { background-color: hsla(42, 100%, 70%, 0.25) }
+                    &.Project { background-color: hsla(164, 95%, 43%, 0.25) }
+                    &.Person { background-color: hsla(195, 83%, 38%, 0.25) }
+                    &.Post { background-color: hsla(39, 77%, 70%, 0.25) }
                 }
+
+                path{stroke: none}
+
+                &.File path { fill: hsl(346, 84%, 61%) }
+                &.Poll path { fill: hsl(42, 100%, 70%) }
+                &.Project path { fill: hsl(164, 95%, 43%) }
+                &.Person path { fill: hsl(195, 83%, 38%) }
+                &.Post path { fill: hsl(239, 77%, 70%) }
             }
         }
 
@@ -153,6 +222,68 @@
 
         &.hide {
             animation: popup-reverse 150ms;
+        }
+    }
+}
+
+
+.ql-editor {
+    outline: none;
+
+    &.ql-blank {
+        &::before {
+            color: var(--text-color-dark);
+            position: absolute;
+            left: 0;
+        }
+    }
+}
+
+.ql-toolbar {
+    .advanced-text-area {
+        display: flex;
+        align-items: center;
+        padding: 4px;
+        margin: 8px;
+        margin-bottom: 0;
+
+        ul {
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+            gap: 8px;
+            margin-left: 20px;
+            padding-right: 20px;
+
+            border-right: 1px solid #444;
+            
+            li {
+                cursor: pointer;
+                
+                .icon {
+                    height: 18px;
+                    width: 18px;
+                }
+
+                .icon path{
+                    fill: white;
+                    stroke: none;
+
+                    transition: fill 150ms;
+                }
+
+                &:hover {
+                    .icon path{
+                        fill: var(--text-color-hover);
+                    }
+                }
+
+                &.enabled {
+                    .icon path{
+                        fill: var(--primary-colour);
+                    }
+                }
+            }
         }
     }
 }

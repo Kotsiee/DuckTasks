@@ -4,6 +4,7 @@ import { User } from "./index.ts";
 export interface Files {
     id: string;
     userId: User;
+    chatId: User | null;
     filePath: string;
     name: string;
     extension: string;

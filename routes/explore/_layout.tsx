@@ -1,6 +1,4 @@
 import { PageProps } from "$fresh/server.ts";
-import { Partial } from "$fresh/runtime.ts";
-import ExploreFilters from "../../islands/ExploreFilter.tsx";
 
 export default function Layout(pageProps: PageProps) {
     const currentRoute = pageProps.route.split("/explore");

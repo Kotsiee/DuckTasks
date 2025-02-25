@@ -6,7 +6,7 @@
     background-color: var(--bg-colour-tertiary);
 
     .chat-header-container{
-        background-color: var(--bg-colour-primary);
+        background-color: var(--bg-colour-secondary);
         border-radius: var(--border-radius-small);
         padding: 20px;
         max-height: 60px;
@@ -28,10 +28,9 @@
             }
 
             .isTyping {
-                font-weight: var(--weight-light);
                 font-size: 0.6em;
                 font-style: italic;
-                color: var(--primary-colour);
+                color: var(--primary-colour-light);
             }
         }
 
@@ -74,16 +73,15 @@
             justify-content: center;
     
             .select-view-input + label {
-                height: 3px;
+                height: 5px;
                 width: 20px;
                 margin: 0 4px;
-                background-color: var(--btn-hover);
+                background-color: var(--modal-colour-light);
                 cursor: pointer;
                 border-radius: 4px;
 
-                &:hover { 
-                    height: 4px;
-                    background-color: var(--btn-active);
+                &:hover {
+                    background-color: var(--modal-colour-lighter);
                  }
             }
 

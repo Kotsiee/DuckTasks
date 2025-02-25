@@ -2,11 +2,16 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
+import * as $_user_index from "./routes/[user]/index.tsx";
 import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
 import * as $_layout from "./routes/_layout.tsx";
 import * as $_middleware from "./routes/_middleware.ts";
 import * as $about_index from "./routes/about/index.tsx";
+import * as $account_layout from "./routes/account/_layout.tsx";
+import * as $account_forgotpassword from "./routes/account/forgotpassword.tsx";
+import * as $account_login from "./routes/account/login.tsx";
+import * as $account_signup from "./routes/account/signup.tsx";
 import * as $api_account_login from "./routes/api/account/login.ts";
 import * as $api_account_user from "./routes/api/account/user.ts";
 import * as $api_chats_chatId_chat from "./routes/api/chats/[chatId]/chat.ts";
@@ -28,31 +33,33 @@ import * as $partials_explore_project from "./routes/partials/explore/project.ts
 import * as $partials_messages_id_ from "./routes/partials/messages/[id].tsx";
 import * as $projects_index from "./routes/projects/index.tsx";
 import * as $projects_project_id_ from "./routes/projects/project/[id].tsx";
-import * as $user_account_layout from "./routes/user/account/_layout.tsx";
-import * as $user_account_forgotpassword from "./routes/user/account/forgotpassword.tsx";
-import * as $user_account_login from "./routes/user/account/login.tsx";
-import * as $user_account_signup from "./routes/user/account/signup.tsx";
-import * as $user_profile_id_ from "./routes/user/profile/[id].tsx";
-import * as $user_profile_layout from "./routes/user/profile/_layout.tsx";
 import * as $Counter from "./islands/Counter.tsx";
-import * as $ExploreFilter from "./islands/ExploreFilter.tsx";
 import * as $Navbar from "./islands/Navbar.tsx";
 import * as $Test from "./islands/Test.tsx";
+import * as $Txtbox from "./islands/Txtbox.tsx";
 import * as $account_Login from "./islands/account/Login.tsx";
 import * as $account_Register from "./islands/account/Register.tsx";
 import * as $chat_ChatMessages from "./islands/chat/ChatMessages.tsx";
+import * as $chat_ChatResize from "./islands/chat/ChatResize.tsx";
 import * as $chat_ChatsList from "./islands/chat/ChatsList.tsx";
+import * as $explore_ExploreFilter from "./islands/explore/ExploreFilter.tsx";
 import * as $explore_ProjectDetails from "./islands/explore/ProjectDetails.tsx";
 import * as $explore_ProjectList from "./islands/explore/ProjectList.tsx";
+import * as $profile_profile from "./islands/profile/profile.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
+    "./routes/[user]/index.tsx": $_user_index,
     "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
     "./routes/_layout.tsx": $_layout,
     "./routes/_middleware.ts": $_middleware,
     "./routes/about/index.tsx": $about_index,
+    "./routes/account/_layout.tsx": $account_layout,
+    "./routes/account/forgotpassword.tsx": $account_forgotpassword,
+    "./routes/account/login.tsx": $account_login,
+    "./routes/account/signup.tsx": $account_signup,
     "./routes/api/account/login.ts": $api_account_login,
     "./routes/api/account/user.ts": $api_account_user,
     "./routes/api/chats/[chatId]/chat.ts": $api_chats_chatId_chat,
@@ -74,24 +81,21 @@ const manifest = {
     "./routes/partials/messages/[id].tsx": $partials_messages_id_,
     "./routes/projects/index.tsx": $projects_index,
     "./routes/projects/project/[id].tsx": $projects_project_id_,
-    "./routes/user/account/_layout.tsx": $user_account_layout,
-    "./routes/user/account/forgotpassword.tsx": $user_account_forgotpassword,
-    "./routes/user/account/login.tsx": $user_account_login,
-    "./routes/user/account/signup.tsx": $user_account_signup,
-    "./routes/user/profile/[id].tsx": $user_profile_id_,
-    "./routes/user/profile/_layout.tsx": $user_profile_layout,
   },
   islands: {
     "./islands/Counter.tsx": $Counter,
-    "./islands/ExploreFilter.tsx": $ExploreFilter,
     "./islands/Navbar.tsx": $Navbar,
     "./islands/Test.tsx": $Test,
+    "./islands/Txtbox.tsx": $Txtbox,
     "./islands/account/Login.tsx": $account_Login,
     "./islands/account/Register.tsx": $account_Register,
     "./islands/chat/ChatMessages.tsx": $chat_ChatMessages,
+    "./islands/chat/ChatResize.tsx": $chat_ChatResize,
     "./islands/chat/ChatsList.tsx": $chat_ChatsList,
+    "./islands/explore/ExploreFilter.tsx": $explore_ExploreFilter,
     "./islands/explore/ProjectDetails.tsx": $explore_ProjectDetails,
     "./islands/explore/ProjectList.tsx": $explore_ProjectList,
+    "./islands/profile/profile.tsx": $profile_profile,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;
