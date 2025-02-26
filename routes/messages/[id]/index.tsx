@@ -6,17 +6,18 @@ import { supabase, SupabaseInfo } from "../../../lib/supabase/client.ts";
 import { useUser } from "../../../components/UserContext.tsx";
 
 export default function Conversations(props: PageProps) {
-    const supabaseInfo = new SupabaseInfo(supabase);
-    const url = supabaseInfo.getUrl();
-    const key = supabaseInfo.getAnonKey();
+  const supabaseInfo = new SupabaseInfo(supabase);
+  const url = supabaseInfo.getUrl();
+  const key = supabaseInfo.getAnonKey();
 
-    const user = useUser();
+  const user = useUser();
 
-    return (
-        <div class="chat">
-            <Partial name="convo-messages">
-                <h1>okay</h1>
-            </Partial>
-        </div>
-    );
+  return (
+    <Partial name="convo-messages">
+      <ChatMessages
+        pageProps={props}
+        p={{ supabaseUrl: url, supabaseAnonKey: key, user: user! }}
+      />
+    </Partial>
+  );
 }

@@ -31,47 +31,11 @@ export default function ChatMessages(props: { pageProps: PageProps, p: IChatMess
         fetchMessages();
     }, []);
 
-    const getChatInfo = (type: 'photo' | 'name') => {
-        if (!chat)
-            return '';
-
-        const otherUser = chat.users!.find(u => u.user?.id != user.id)?.user!; 
-
-        switch (type) {
-            case 'photo':
-                return chat.photo != null ? chat.photo.url : otherUser?.profilePicture?.url;
-            case 'name': 
-                return chat.name ? chat.name : otherUser?.username;
-        }
-    }
-
     return (
         <div class="chat-messages-container">
             { chat ? (
                 <div>
-                    <div class="chat-header">
-                        <div class="chat-header-container">
-                            <div class="left">
-                                <img class="chat-photo" src={ getChatInfo('photo') }/>
-                                <div>
-                                    <h6>{ getChatInfo('name') }</h6>
-                                    <p class="isTyping">is typing...</p>
-                                </div>
-                            </div>
-                        
-                            <div class="center">
-                                <SelectView />
-                            </div>
-
-                            <div class="right">
-                                <AIcon className="chatmenu" startPaths={Icons.DotMenu} size={20}/>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <ChatSection chat={chat} user={user} p={props.p}/>
-                    </div>
+                    <ChatSection chat={chat} user={user} p={props.p}/>
                 </div>
             )
             : (<></>)
@@ -241,24 +205,5 @@ const ChatMessage = (props: {msg: Messages, userId: string, prevUID?: string}) =
                 </div>
             </div>
         </li>
-    )
-}
-
-const SelectView = () => {
-    return(
-        <div class="select-view">
-            <p>Chat</p>
-
-            <div class="lines-container">
-                <div class="lines">
-                    <input type="radio" class="select-view-input" name="select-view-input" id="select-view-input-chat" hidden checked/>
-                    <label for="select-view-input-chat"/>
-                    <input type="radio" class="select-view-input" name="select-view-input" id="select-view-input-files" hidden/>
-                    <label for="select-view-input-files"/>
-                    <input type="radio" class="select-view-input" name="select-view-input" id="select-view-input-info" hidden/>
-                    <label for="select-view-input-info"/>
-                </div>
-            </div>
-        </div>
     )
 }

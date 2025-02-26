@@ -182,7 +182,18 @@ export default function NavBar({
 
                 <li
                   class={`${
-                    currentRoute[1] == "projects" ? "active" : ""
+                    currentRoute[1] == "files" ? "active" : ""
+                  } nav-btn-link`}
+                >
+                  <a href="/files">
+                    <AIcon startPaths={Icons.Filter} />
+                  </a>
+                  <label hidden={openState.value}>Files</label>
+                </li>
+
+                <li
+                  class={`${
+                    currentRoute[1] == "teams" ? "active" : ""
                   } nav-btn-link`}
                 >
                   <a href="/teams">
