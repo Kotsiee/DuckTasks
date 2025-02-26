@@ -100,12 +100,12 @@
                 height: calc(var(--header-height-desktop) - 20px);
                 width: calc(var(--header-height-desktop) - 20px);
                 border-radius: calc(var(--header-height-desktop) - 20px);
-                transition: outline 100ms;
+                transition: outline 200ms;
                 cursor: pointer;
-                outline: 1px solid var(--secondary-colour);
+                outline: 1px solid var(--text-color-dark);
 
                 &:hover {
-                    outline: 2px solid var(--tertiary-colour);
+                    outline: 1px solid var(--tertiary-colour);
                 }
             }
         }

@@ -1,7 +1,7 @@
 import { PageProps } from "$fresh/server.ts";
 
 export default function Layout(pageProps: PageProps) {
-  const page = pageProps.route.split('/user/account/')[1]
+  const page = pageProps.route.split('/account/')[1]
 
   // deno-lint-ignore no-explicit-any
   const pageFunc = (login: any, signup: any, forgot?: any) => {

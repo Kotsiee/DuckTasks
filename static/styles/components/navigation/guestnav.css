@@ -32,9 +32,8 @@
                 background-color: var(--primary-colour);
                 margin-left: 12px;
 
-                &:hover {
-                    background-color: var(--primary-colour-hover);
-                }
+                &:hover { background-color: var(--primary-colour-dark); }
+                &:active { background-color: var(--primary-colour-darker); }
             }
 
             &.btn-signup {

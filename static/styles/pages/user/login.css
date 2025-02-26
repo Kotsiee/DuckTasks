@@ -4,20 +4,14 @@
 }
 
 .loginLayout {
-    padding: 40px;
+    padding: 20px;
 
     .background {
         position: relative;
         border-radius: var(--border-radius);
         min-height: calc(100vh - var(--header-height-desktop) - 80px);
 
-        background: linear-gradient(-15deg, 
-        hsl(var(--primary-hue), var(--primary-saturation), 10%), 
-        var(--primary-colour), 
-        hsl(var(--primary-hue), 
-        var(--primary-saturation), 30%), 
-        var(--primary-colour), 
-        hsl(var(--primary-hue), var(--primary-saturation), 20%));
+        background-color: var(--primary-colour);
 
         background-size: 500%;
         animation: backgroundGrad 20s infinite alternate-reverse;
@@ -59,7 +53,8 @@
                 height: 10%;
 
                 a {
-                    color: #00c3ff;
+                    text-decoration: none;
+                    color: var(--secondary-colour);
                     cursor: pointer;
                     font-weight: var(--weight-bold);
                     transition: all 200ms;
@@ -211,8 +206,8 @@
                     transition: all 200ms;
                     cursor: pointer;
 
-                    &:hover { background-color: var(--primary-colour-hover); }
-                    &:active { background-color: var(--primary-colour-active); }
+                    &:hover { background-color: var(--primary-colour-dark); }
+                    &:active { background-color: var(--primary-colour-darker); }
                 }
             }
         }

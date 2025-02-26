@@ -4,8 +4,9 @@ import {
   useSignal,
 } from "https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js";
 import AIcon, { Icons } from "../components/Icons.tsx";
-import { Ref, useRef } from "preact/hooks";
+import { Ref, useEffect, useRef, useState } from "preact/hooks";
 import { User } from "../lib/types/index.ts";
+import { useUser } from "../components/UserContext.tsx";
 
 export default function NavBar({
   pageProps,
@@ -14,7 +15,9 @@ export default function NavBar({
   pageProps: PageProps;
   user: User | null;
 }) {
-  const navbarState = localStorage.getItem("navbarState") == "open";
+  let navbarState = localStorage.getItem("navbarState") == "open";
+  const [u, setUser] = useState<User | null>(user)
+
   const openState = useSignal<boolean>(navbarState);
   const openState0 = useSignal<boolean>(false);
 
@@ -28,6 +31,18 @@ export default function NavBar({
     refs.current[key]?.click();
   };
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser) as User);
+      } catch (error) {
+        console.error("Error parsing user from localStorage:", error);
+      }
+    }
+  }, []);
+  
+
   return (
     <div>
       <link rel="stylesheet" href="/styles/islands/navbar.css" />
@@ -39,7 +54,7 @@ export default function NavBar({
             `}
       </style>
 
-      {user ? (
+      {u ? (
         <nav>
           <div class="nav user-nav">
             <div class="nav-list nav-left">
@@ -107,12 +122,12 @@ export default function NavBar({
                     }
                   }}
                   class="profilePic"
-                  src={user?.profilePicture?.url}
+                  src={u?.profilePicture?.url}
                 />
 
                 <ProfileModal
                   r={profileModal}
-                  user={user}
+                  user={u}
                 />
               </div>
             </div>
@@ -149,7 +164,7 @@ export default function NavBar({
                   } nav-btn-link`}
                 >
                   <a href="/explore">
-                    <AIcon startPaths={Icons.Filter} />
+                    <AIcon startPaths={Icons.Search} />
                   </a>
                   <label hidden={openState.value}>Explore</label>
                 </li>

@@ -1,7 +1,11 @@
 import AIcon from "../../components/Icons.tsx";
 import { Icons } from "../../components/Icons.tsx";
+import { useSignal } from "https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js";
+import type { User } from "../../lib/types/index.ts";
 
-export default function ProfilePage() {
+export default function ProfilePage(props: {user: User}) {
+  const tab = useSignal<string>('posts')
+
   return (
     <div class="profileLayout">
       <section class="banner">
@@ -11,7 +15,7 @@ export default function ProfilePage() {
         />
         <img
           class="profile-img"
-          src="https://gratisography.com/wp-content/uploads/2024/11/gratisography-augmented-reality-800x525.jpg"
+          src={props.user.profilePicture?.url}
         />
       </section>
       <section class="user-info">
@@ -19,8 +23,8 @@ export default function ProfilePage() {
 
           <div class="contents">
             <div class="details">
-              <h3>Ahmed Kotwal</h3>
-              <p>@ahmedk</p>
+              <h3>{`${props.user.firstName} ${props.user.lastName}`}</h3>
+              <p>@{props.user.username}</p>
               <p>
                 Software Developer | C#, Unity, C++, Unreal | Tech Enthusiast
               </p>
@@ -51,22 +55,22 @@ export default function ProfilePage() {
         <div class="select">
             <ul class="select-tab">
                 <li>
-                    <input type="radio" name="activity-select" id="posts" hidden checked/>
+                    <input type="radio" name="activity-select" id="posts" value="posts" hidden checked={tab.value == "posts"} onChange={(val) => {tab.value = val.currentTarget.value}}/>
                     <label for="posts">Activity</label>
                 </li>
 
                 <li>
-                    <input type="radio" name="activity-select" id="projects" hidden/>
+                    <input type="radio" name="activity-select" id="projects" value="projects" checked={tab.value == "projects"} hidden onChange={(val) => {tab.value = val.currentTarget.value}}/>
                     <label for="projects">Projects</label>
                 </li>
 
                 <li>
-                    <input type="radio" name="activity-select" id="experience" hidden/>
+                    <input type="radio" name="activity-select" id="experience" value="experience" checked={tab.value == "experience"} hidden onChange={(val) => {tab.value = val.currentTarget.value}}/>
                     <label for="experience">Experience</label>
                 </li>
 
                 <li>
-                    <input type="radio" name="activity-select" id="teams" hidden/>
+                    <input type="radio" name="activity-select" id="teams" value="teams" checked={tab.value == "teams"} hidden onChange={(val) => {tab.value = val.currentTarget.value}}/>
                     <label for="teams">Teams</label>
                 </li>
             </ul>
@@ -78,9 +82,26 @@ export default function ProfilePage() {
         </div>
       
         <div class="content">
-
+          <ActivityTab tab={tab.value}/>
         </div>
       </section>
     </div>
   );
+}
+
+
+const ActivityTab = (props: {tab: string}) => {
+  switch (props.tab) {
+    case 'posts':
+      return(<div class="actvity-posts">Posts</div>);
+    case 'projects':
+      return(<div class="actvity-projects">Projects</div>);
+    case 'experience':
+      return(<div class="actvity-experience">XP</div>);
+    case 'teams':
+      return(<div class="actvity-teams">Teams</div>);
+
+    default:
+      return(<div class="actvity-teams">Teams</div>);
+  }
 }

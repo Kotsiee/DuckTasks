@@ -19,7 +19,7 @@ export default function Profile(props: PageProps<User | null>) {
                 props.data? (
                     <div>
                         <link rel="stylesheet" href="/styles/pages/profile.css" />
-                        <ProfilePage />
+                        <ProfilePage user={props.data}/>
                     </div>
                 ) :
                 (
