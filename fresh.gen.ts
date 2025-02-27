@@ -63,6 +63,8 @@ import * as $explore_ExploreFilter from "./islands/explore/ExploreFilter.tsx";
 import * as $explore_ProjectDetails from "./islands/explore/ProjectDetails.tsx";
 import * as $explore_ProjectList from "./islands/explore/ProjectList.tsx";
 import * as $profile_profile from "./islands/profile/profile.tsx";
+import * as $projects_ProjectChatList from "./islands/projects/ProjectChatList.tsx";
+import * as $projects_ProjectsList from "./islands/projects/ProjectsList.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
@@ -141,6 +143,8 @@ const manifest = {
     "./islands/explore/ProjectDetails.tsx": $explore_ProjectDetails,
     "./islands/explore/ProjectList.tsx": $explore_ProjectList,
     "./islands/profile/profile.tsx": $profile_profile,
+    "./islands/projects/ProjectChatList.tsx": $projects_ProjectChatList,
+    "./islands/projects/ProjectsList.tsx": $projects_ProjectsList,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

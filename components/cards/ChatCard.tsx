@@ -6,25 +6,12 @@ export default function ChatCard(props: { chat: Chat, viewerID: string }) {
 
     return (
         <li class="chat-item">
-            {
-                url.pathname.includes('/messages/') ?
-                (
-                    <a class={`chat-link`}
-                    href={`/messages/${props.chat.id}`} 
-                    f-partial={`/partials/messages/${props.chat.id}`}
-                    >
-                        <Card chat={props.chat} viewerID={props.viewerID}/>
-                    </a>
-                ) : (
-                    <div class="chat-link"
-                    onClick={() => {
-                        globalThis.history.pushState({}, '', `/messages/${props.chat.id}`)
-                        globalThis.location.reload()
-                    }}>
-                        <Card chat={props.chat} viewerID={props.viewerID}/>
-                    </div>
-                )
-            }
+            <a class={`chat-link`}
+            href={`/messages/${props.chat.id}`} 
+            f-partial={`/partials/messages/${props.chat.id}`}
+            >
+                <Card chat={props.chat} viewerID={props.viewerID}/>
+            </a>
         </li>
     )
 }
