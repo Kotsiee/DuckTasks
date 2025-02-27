@@ -58,31 +58,38 @@ export default function ChatLayout({pageProps, user}: { pageProps: PageProps; us
   return <></>;
 }
 
-const SelectView = (props: { chat: string }) => {
+const SelectView = ({chat}: { chat: string }) => {
+
+  let title = 'Chat'
+  switch (globalThis.location.href.split(`${chat}/`)[1]){
+    case 'attachments': title = "Attachments"; break;
+    case 'info': title = "Chat Info"; break;
+  }
+
   return (
     <div class="select-view">
-      <p>Chat</p>
+      <p>{title}</p>
 
       <div class="lines-container">
         <div class="lines">
           <a
             class="select-view-input"
-            href={`/messages/${props.chat}`}
-            f-partial={`/partials/messages/${props.chat}`}
+            href={`/messages/${chat}`}
+            f-partial={`/partials/messages/${chat}`}
           >
           </a>
 
           <a
             class="select-view-input"
-            href={`/messages/${props.chat}/attachments`}
-            f-partial={`/partials/messages/${props.chat}/attachments`}
+            href={`/messages/${chat}/attachments`}
+            f-partial={`/partials/messages/${chat}/attachments`}
           >
           </a>
 
           <a
             class="select-view-input"
-            href={`/messages/${props.chat}/info`}
-            f-partial={`/partials/messages/${props.chat}/info`}
+            href={`/messages/${chat}/info`}
+            f-partial={`/partials/messages/${chat}/info`}
           >
           </a>
         </div>

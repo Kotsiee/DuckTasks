@@ -1,7 +1,7 @@
 .messages-layout .chat-header{
     padding: 20px 20px 0 20px;
     position: fixed;
-    transition: width var(--width-transition);
+    /* transition: width var(--width-transition); */
     width: calc(100% - var(--header-side-width-desktop) - var(--messages-width));
     max-height: var(--header-height);
     z-index: 5;
