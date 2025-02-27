@@ -92,12 +92,12 @@
                     &:hover { background-color: var(--modal-colour) }
                     &:active { background-color: var(--modal-colour-light) }
                 }
-
-                &[aria-current="page"] .container{
-                    background-color: var(--modal-colour);
-                }
             }
             
         }
     }
+}
+
+[data-current] .container, [data-ancestor] .container{
+    background-color: var(--modal-colour);
 }

@@ -3,23 +3,19 @@ import { Chat, User } from "../../lib/types/index.ts";
 import { PageProps } from "$fresh/server.ts";
 import AIcon, { Icons } from "../../components/Icons.tsx";
 
-export default function ChatLayout(props: {
-  pageProps: PageProps;
-  user: User | null;
-}) {
+export default function ChatLayout({pageProps, user}: { pageProps: PageProps; user: User | null;}) {
   const [chat, setChat] = useState<Chat>();
-  const user = props.user;
 
   useEffect(() => {
     async function fetchMessages() {
-      const res = await fetch(`/api/chats/${props.pageProps.params.id}/chat`);
+      const res = await fetch(`/api/chats/${pageProps.params.id}/chat`);
       const data = await res.json();
       const thisChat: Chat = data.json;
       setChat(thisChat);
     }
 
     fetchMessages();
-  }, []);
+  }, [pageProps.params.id]);
 
   const getChatInfo = (type: "photo" | "name") => {
     if (!chat || !user) return "";
@@ -58,7 +54,8 @@ export default function ChatLayout(props: {
         </div>
       </div>
     );
-  else return <></>;
+    
+  return <></>;
 }
 
 const SelectView = (props: { chat: string }) => {

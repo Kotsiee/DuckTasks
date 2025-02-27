@@ -3,9 +3,10 @@ import { PageProps } from "$fresh/server.ts";
 import { Partial } from "$fresh/runtime.ts";
 import { useUser } from "../../../../components/UserContext.tsx";
 import ChatMessages from "../../../../islands/chat/ChatMessages.tsx";
-import { SupabaseInfo, supabase } from "../../../../lib/supabase/client.ts";
+import { supabase, SupabaseInfo } from "../../../../lib/supabase/client.ts";
+import ChatLayout from "../../../../islands/chat/ChatLayout.tsx";
 
-export default function Conversations(props: PageProps) {
+export default function Conversations(pageProps: PageProps) {
   const supabaseInfo = new SupabaseInfo(supabase);
   const url = supabaseInfo.getUrl();
   const key = supabaseInfo.getAnonKey();
@@ -14,8 +15,9 @@ export default function Conversations(props: PageProps) {
 
   return (
     <Partial name="convo-messages">
+      <ChatLayout pageProps={pageProps} user={user} />
       <ChatMessages
-        pageProps={props}
+        pageProps={pageProps}
         p={{ supabaseUrl: url, supabaseAnonKey: key, user: user! }}
       />
     </Partial>

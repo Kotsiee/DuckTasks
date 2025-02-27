@@ -1,22 +1,19 @@
 import { PageProps } from "$fresh/server.ts";
 import {
-  Signal,
   useSignal,
 } from "https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js";
 import AIcon, { Icons } from "../components/Icons.tsx";
-import { Ref, useEffect, useRef, useState } from "preact/hooks";
+import { Ref, useRef } from "preact/hooks";
 import { User } from "../lib/types/index.ts";
-import { useUser } from "../components/UserContext.tsx";
 
 export default function NavBar({
   pageProps,
-  user,
+  user
 }: {
   pageProps: PageProps;
-  user: User | null;
+  user: User | null
 }) {
-  let navbarState = localStorage.getItem("navbarState") == "open";
-  const [u, setUser] = useState<User | null>(user)
+  const navbarState = localStorage.getItem("navbarState") == "open";
 
   const openState = useSignal<boolean>(navbarState);
   const openState0 = useSignal<boolean>(false);
@@ -29,19 +26,7 @@ export default function NavBar({
 
   const handleClick = (key: string) => {
     refs.current[key]?.click();
-  };
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser) as User);
-      } catch (error) {
-        console.error("Error parsing user from localStorage:", error);
-      }
-    }
-  }, []);
-  
+  };  
 
   return (
     <div>
@@ -54,7 +39,7 @@ export default function NavBar({
             `}
       </style>
 
-      {u ? (
+      {user ? (
         <nav>
           <div class="nav user-nav">
             <div class="nav-list nav-left">
@@ -122,12 +107,12 @@ export default function NavBar({
                     }
                   }}
                   class="profilePic"
-                  src={u?.profilePicture?.url}
+                  src={user?.profilePicture?.url}
                 />
 
                 <ProfileModal
                   r={profileModal}
-                  user={u}
+                  user={user}
                 />
               </div>
             </div>

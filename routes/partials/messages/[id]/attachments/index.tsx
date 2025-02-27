@@ -3,13 +3,17 @@ import { PageProps } from "$fresh/server.ts";
 import { Partial } from "$fresh/runtime.ts";
 import { useUser } from "../../../../../components/UserContext.tsx";
 import Attachments from "../../../../../islands/chat/Attachments.tsx";
+import ChatLayout from "../../../../../islands/chat/ChatLayout.tsx";
 
-export default function Conversations(props: PageProps) {
+export default function Conversations(pageProps: PageProps) {
     const user = useUser();
 
     return (
         <Partial name="convo-messages">
-            <Attachments/>
+            <ChatLayout pageProps={pageProps} user={user} />
+            <div class="chat-messages-container">
+                <Attachments />
+            </div>
         </Partial>
     );
 }

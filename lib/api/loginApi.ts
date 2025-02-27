@@ -22,14 +22,25 @@ export async function signInWithEmail(formData: FormData) {
     const accessToken = data.session.access_token;
     const refreshToken = data.session.refresh_token;
 
+    const user = await fetchUserByID(data.user.id)
     const headers = new Headers();
+    // Set `access_token` cookie
     headers.set(
         "Set-Cookie",
-        `access_token=${accessToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=3600, refresh_token=${refreshToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=2592000`
+        `access_token=${accessToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=3600`
+    );
+
+    // Append a second `Set-Cookie` header for `refresh_token`
+    headers.append(
+        "Set-Cookie",
+        `refresh_token=${refreshToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=2592000`
+    );
+
+    headers.append(
+        "Set-Cookie",
+        `user=${user!.id}; HttpOnly; Secure; SameSite=Strict; Path=/;`
     );
     headers.set("status", "200")
-
-    const user = await fetchUserByID(data.user.id)
 
     return new Response(JSON.stringify(user), { headers });
 }

@@ -1,27 +1,38 @@
 import AIcon, { Icons } from "../../components/Icons.tsx";
+import type { User } from "../../lib/types/index.ts";
 
 export default function LoginIsland(){
-    const user = localStorage.getItem('user')
-    
+
     const handleSubmit = async (e: Event) => {
         e.preventDefault();
         const form = e.target as HTMLFormElement;
         const formData = new FormData(form);
 
-        const data = await fetch("/api/account/login", {
+        await fetch("/api/account/login", {
             method: "POST",
             body: formData,
+            credentials: "include", // Ensure cookies are sent & received
         });
 
-        data.text()
-        .then(uid => {
-            console.log(uid.toString())
-            localStorage.setItem('user', uid.toString())
-        })
+        // const user = await response.text();
 
-        globalThis.history.replaceState({}, '', '/')
-        globalThis.window.location.reload()
-    }
+        // if (user) {
+        //     let usr = null
+        //     try {
+        //         usr = (JSON.parse(user) as User);
+        //       } catch (error) {
+        //         console.error("Error parsing user from localStorage:", error);
+        //     }
+        //     console.log("User ID:", usr?.id);
+
+        //     // Set the `userID` in a **cookie**
+        //     document.cookie = `user=${usr?.id}; Path=/; Secure; HttpOnly; SameSite=Strict;`;
+
+        //     // Redirect and refresh
+        //     // globalThis.history.replaceState({}, "", "/");
+        //     // globalThis.window.location.reload();
+        // }
+    };
 
     return (
         <form onSubmit={handleSubmit}>

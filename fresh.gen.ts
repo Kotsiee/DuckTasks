@@ -31,7 +31,6 @@ import * as $messages_id_attachments_index from "./routes/messages/[id]/attachme
 import * as $messages_id_index from "./routes/messages/[id]/index.tsx";
 import * as $messages_id_info from "./routes/messages/[id]/info.tsx";
 import * as $messages_layout from "./routes/messages/_layout.tsx";
-import * as $messages_c_id_ from "./routes/messages/c/[id].tsx";
 import * as $messages_index from "./routes/messages/index.tsx";
 import * as $partials_explore_project from "./routes/partials/explore/project.tsx";
 import * as $partials_messages_id_ from "./routes/partials/messages/[id].tsx";
@@ -99,7 +98,6 @@ const manifest = {
     "./routes/messages/[id]/index.tsx": $messages_id_index,
     "./routes/messages/[id]/info.tsx": $messages_id_info,
     "./routes/messages/_layout.tsx": $messages_layout,
-    "./routes/messages/c/[id].tsx": $messages_c_id_,
     "./routes/messages/index.tsx": $messages_index,
     "./routes/partials/explore/project.tsx": $partials_explore_project,
     "./routes/partials/messages/[id].tsx": $partials_messages_id_,

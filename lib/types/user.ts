@@ -1,19 +1,14 @@
 import { DateTime } from "https://esm.sh/luxon@3.5.0";
 import { Logo, Privacy, Theme } from "./index.ts";
+import type { PageProps } from "$fresh/server.ts";
 
-export const fetchUser = (): User | null => {
-    const user = localStorage.getItem("user");
+export const fetchUser: (ctx: PageProps) => User | null = (ctx: PageProps) => {
+    const user = ctx.state.user;
     if (!user) {
         return null;
     }
-
-    try {
-        const parsedUser = JSON.parse(user).json as User;
-        return parsedUser;
-    } catch (error) {
-        console.error("Error parsing user from localStorage:", error);
-        return null;
-    }
+    
+    return user as User;
 };
 
 export interface User {

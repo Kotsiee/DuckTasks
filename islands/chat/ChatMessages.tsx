@@ -3,12 +3,14 @@ import { useEffect, useState } from "preact/hooks";
 import { Chat, Messages, User } from "../../lib/types/index.ts";
 import { PageProps } from '$fresh/server.ts';
 import AIcon, { Icons } from "../../components/Icons.tsx";
-import { createClient, RealtimePostgresChangesPayload } from "https://esm.sh/@supabase/supabase-js@2.47.10";
+import { createClient, RealtimePostgresChangesPayload, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.47.10";
 import Textbox from "../Txtbox.tsx";
 import { toHTML, toMessage } from "../../lib/utils/messages.ts";
 import { jsonTag } from "../../lib/types/messages.ts";
 import { useRef } from 'preact/hooks';
 import { useSignal } from "https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js";
+import { supabase } from "../../lib/supabase/client.ts";
+import ChatLayout from "./ChatLayout.tsx";
 
 interface IChatMessages {
     supabaseUrl: string;
@@ -16,27 +18,26 @@ interface IChatMessages {
     user: User;
 }
 
-export default function ChatMessages(props: { pageProps: PageProps, p: IChatMessages }) {
+export default function ChatMessages({pageProps, p}: { pageProps: PageProps, p: IChatMessages }) {
     const [chat, setChat] = useState<Chat>();
-    const user = props.p.user;
+    const user = p.user;
+    const supabase = createClient(p.supabaseUrl, p.supabaseAnonKey);
 
     useEffect(() => {
         async function fetchMessages() {
-            const res = await fetch(`/api/chats/${props.pageProps.params.id}/chat`);
+            const res = await fetch(`/api/chats/${pageProps.params.id}/chat`);
             const data = await res.json();
             const thisChat: Chat = data.json
             setChat(thisChat);
         }
 
         fetchMessages();
-    }, []);
+    }, [pageProps.params.id]);
 
     return (
         <div class="chat-messages-container">
             { chat ? (
-                <div>
-                    <ChatSection chat={chat} user={user} p={props.p}/>
-                </div>
+                <ChatSection chat={chat} user={user} p={p} supabase={supabase}/>
             )
             : (<></>)
         }
@@ -44,9 +45,9 @@ export default function ChatMessages(props: { pageProps: PageProps, p: IChatMess
     );
 }
 
-const ChatSection = (props: {p: IChatMessages, chat: Chat, user: User}) => {
+const ChatSection = (props: {p: IChatMessages, chat: Chat, user: User, supabase: SupabaseClient<any, "public", any>}) => {
     const [messages, setMessages] = useState<Messages[]>([]);
-    const supabase = createClient(props.p.supabaseUrl, props.p.supabaseAnonKey);
+    const supabase = props.supabase
 
     const handleSubscription = (payload: RealtimePostgresChangesPayload<{ [key: string]: any }>, c: Chat) => {
         switch (payload.eventType) {
@@ -108,7 +109,7 @@ const ChatSection = (props: {p: IChatMessages, chat: Chat, user: User}) => {
         return () => {
             if (channel) channel.unsubscribe();
         };
-    }, []);
+    }, [props.chat]);
 
     const getChatInfo = (type: 'photo' | 'name') => {
         if (!props.chat)

@@ -20,11 +20,9 @@
 
 .chatarea {
     width: 100%;
-
-    .chatarea-container {
+    .chat-messages-container {
         margin-top: var(--header-height);
-        margin-left: 6px;
         padding: 20px;
-        padding-top: 12px;
     }
+    
 }
